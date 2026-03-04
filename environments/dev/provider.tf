@@ -1,24 +1,25 @@
 ###############################################################################
 # Provider configuration for the dev environment.
-# Credentials MUST be passed via environment variables — never hardcoded.
+# 
+# Credentials:
+#   Set via environment variables (preferred) or directly in terraform.tfvars.
+#   export TF_VAR_access_key="<your-ak>"
+#   export TF_VAR_secret_key="<your-sk>"
 #
-# Required env vars:
-#   HW_ACCESS_KEY     - AK for HCS account
-#   HW_SECRET_KEY     - SK for HCS account
-#   HW_REGION_NAME    - e.g. "cn-north-4"
-#   HW_DOMAIN_NAME    - Account/domain name in HCS
-#   HW_CLOUD_TYPE     - set to "private" for HCS on-premises
-#   HW_AUTH_URL       - IAM endpoint for private HCS (e.g. https://iam.hcs.example.com/v3)
+# Endpoints:
+#   Custom HCS service endpoints are set via the `endpoints` variable
+#   in terraform.tfvars — one map(string) covering all services.
 ###############################################################################
 
-provider "huaweicloud" {
-  # All credentials come from environment variables
-  # Explicitly set cloud type for private HCS deployments
-  cloud     = "myhuaweicloud.com"         # override for private HCS if needed
-  auth_url  = var.hcs_auth_url            # IAM endpoint for private cloud
-  region    = var.region
-  domain_name = var.domain_name
+provider "hcs" {
+  region       = var.region
+  domain_name  = var.domain_name
+  project_name = var.project_name
+  access_key   = var.access_key
+  secret_key   = var.secret_key
+  auth_url     = var.hcs_auth_url
+  insecure     = var.skip_tls_verify
 
-  # For private HCS, you may need to skip TLS verification if using self-signed certs
-  insecure  = var.skip_tls_verify
+  # Custom service endpoint overrides — populated per-environment in terraform.tfvars
+  endpoints = var.endpoints
 }

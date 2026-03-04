@@ -25,8 +25,8 @@ terraform-hcs-repo/
 ## Prerequisites
 
 - Terraform >= 1.5.0 (use [tfenv](https://github.com/tfutils/tfenv))
-- HCS credentials configured (`HW_ACCESS_KEY`, `HW_SECRET_KEY`, `HW_REGION_NAME`, `HW_DOMAIN_NAME`)
-- Remote state bucket pre-created in HCS OBS
+- HCS credentials (Access Key + Secret Key)
+- Remote state bucket pre-created in HCS OBS (optional — can use local state)
 
 ## Quick Start
 
@@ -38,19 +38,15 @@ cd terraform-hcs-repo
 # 2. Install correct Terraform version
 tfenv install
 
-# 3. Set credentials
-export HW_ACCESS_KEY="your-ak"
-export HW_SECRET_KEY="your-sk"
-export HW_REGION_NAME="your-region"
-export HW_DOMAIN_NAME="your-domain"
-export HW_CLOUD_TYPE="private"
-export HW_ENDPOINTS_FILE="endpoints.json"   # if using custom HCS endpoints
+# 3. Set credentials (Terraform reads TF_VAR_ prefixed env vars automatically)
+export TF_VAR_access_key="your-ak"
+export TF_VAR_secret_key="your-sk"
 
 # 4. Init an environment
 cd environments/dev
-cp backend.tf.example backend.tf
-# edit backend.tf with your OBS bucket details
-terraform init
+cp terraform.tfvars.example terraform.tfvars
+# edit terraform.tfvars with your region, domain, project, and endpoints
+terraform init -backend=false   # use -backend=false for local state
 terraform plan
 terraform apply
 ```

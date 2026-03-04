@@ -2,22 +2,23 @@
 # Module: security
 # Creates parameterized security groups with rule sets.
 # Pattern: pass a list of rule objects; module creates SG + all rules.
+#
+# Provider: huaweicloud/hcs (Huawei Cloud Stack)
 ###############################################################################
 
-resource "huaweicloud_networking_secgroup" "this" {
+resource "hcs_networking_secgroup" "this" {
   for_each = var.security_groups
 
   name                 = "${var.name_prefix}-${each.key}-sg"
   description          = lookup(each.value, "description", "Managed by Terraform")
   delete_default_rules = true
-  tags                 = var.tags
 }
 
 # Egress — allow all by default (override with explicit rules if needed)
-resource "huaweicloud_networking_secgroup_rule" "default_egress" {
+resource "hcs_networking_secgroup_rule" "default_egress" {
   for_each = var.security_groups
 
-  security_group_id = huaweicloud_networking_secgroup.this[each.key].id
+  security_group_id = hcs_networking_secgroup.this[each.key].id
   direction         = "egress"
   ethertype         = "IPv4"
   remote_ip_prefix  = "0.0.0.0/0"
@@ -34,17 +35,17 @@ locals {
         port_range_min   = lookup(rule, "port_min", null)
         port_range_max   = lookup(rule, "port_max", null)
         remote_ip_prefix = lookup(rule, "cidr", null)
-        remote_group_id  = lookup(rule, "remote_sg_key", null) != null ? huaweicloud_networking_secgroup.this[rule.remote_sg_key].id : null
+        remote_group_id  = lookup(rule, "remote_sg_key", null) != null ? hcs_networking_secgroup.this[rule.remote_sg_key].id : null
         description      = lookup(rule, "description", "")
       }
     ]
   ])
 }
 
-resource "huaweicloud_networking_secgroup_rule" "ingress" {
+resource "hcs_networking_secgroup_rule" "ingress" {
   for_each = { for r in local.ingress_rules : r.rule_key => r }
 
-  security_group_id = huaweicloud_networking_secgroup.this[each.value.sg_key].id
+  security_group_id = hcs_networking_secgroup.this[each.value.sg_key].id
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = each.value.protocol

@@ -1,0 +1,31 @@
+# Copy this file to backend.tf and fill in your values.
+# Do NOT commit backend.tf — it is gitignored.
+
+terraform {
+  required_version = ">= 1.5.0"
+
+  required_providers {
+    hcs = {
+      source  = "huaweicloud/hcs"
+      version = "~> 2.4.0"
+    }
+  }
+
+  backend "s3" {
+    # HCS OBS is S3-compatible. Set the custom endpoint below.
+    bucket   = "<your-obs-bucket-name>"
+    key      = "<environment>/terraform.tfstate"
+    region   = "<your-hcs-region>"
+    endpoint = "https://obs.<your-hcs-region>.<your-hcs-domain>"
+
+    # Disable AWS-specific features not supported by HCS OBS
+    skip_credentials_validation = true
+    skip_region_validation      = true
+    skip_metadata_api_check     = true
+    force_path_style            = true
+
+    # Credentials are read from environment variables:
+    # AWS_ACCESS_KEY_ID     = HW_ACCESS_KEY
+    # AWS_SECRET_ACCESS_KEY = HW_SECRET_KEY
+  }
+}

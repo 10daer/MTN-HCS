@@ -1,0 +1,20 @@
+terraform {
+  backend "s3" {
+    bucket   = "<your-obs-bucket-name>"
+    key      = "<environment>/terraform.tfstate"
+    region   = "<your-hcs-region>"
+    endpoint = "https://obs.<your-hcs-region>.<your-hcs-domain>"
+
+    skip_credentials_validation = true
+    skip_region_validation      = true
+    skip_metadata_api_check     = true
+    force_path_style            = true
+  }
+}
+```
+
+This is a **template** — it's never used directly. Each environment copies it and fills in real values.
+
+**Why S3 backend for HCS OBS?** HCS Object Storage (OBS) is API-compatible with Amazon S3. Terraform's `s3` backend works against any S3-compatible storage by pointing `endpoint` at your HCS OBS URL. The four `skip_*` flags tell Terraform "don't try to validate this against AWS — it's a different cloud."
+
+**Why is this gitignored?** Because `backend.tf` contains your bucket name and region which may be internal/sensitive, and different developers may have different bucket names for testing. The `.example` file is committed as documentation; the real `backend.tf` is created locally.
