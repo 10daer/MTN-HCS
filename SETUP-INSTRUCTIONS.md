@@ -56,7 +56,22 @@ Do this once after cloning:
 chmod +x scripts/tf.sh
 chmod +x scripts/setup-credentials.sh
 chmod +x scripts/setup-environment.sh
+chmod +x scripts/test-module.sh
 ```
+
+### Step 2b — Verify the test runner works (no credentials needed)
+
+Before touching any credentials, confirm that static and unit tests pass for all modules. This validates your Terraform installation and the codebase in one shot.
+
+```bash
+# Requires Terraform >= 1.6
+./scripts/test-module.sh --all --level static   # fmt + validate every module
+./scripts/test-module.sh --all --level unit     # mock-provider tests, no credentials
+```
+
+Both commands should exit with `ALL PASSED`. If not, see [docs/TESTING.md](docs/TESTING.md) for troubleshooting.
+
+---
 
 ---
 
