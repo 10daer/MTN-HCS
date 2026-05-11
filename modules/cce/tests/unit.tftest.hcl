@@ -112,8 +112,8 @@ run "multiple_node_pools" {
     key_pair_name          = "kp"
     container_network_type = "overlay_l2"
     node_pools = {
-      workers = { flavor_id = "s3.large.4"; initial_node_count = 3; availability_zone = "az1.dc0" }
-      gpu     = { flavor_id = "p3.large.4"; initial_node_count = 1; availability_zone = "az1.dc0" }
+      workers = { flavor_id = "s3.large.4", initial_node_count = 3, availability_zone = "az1.dc0" }
+      gpu     = { flavor_id = "p3.large.4", initial_node_count = 1, availability_zone = "az1.dc0" }
     }
     namespaces = {}
   }

@@ -30,7 +30,8 @@ MTN-HCS/
 ├── docs/
 │   ├── TESTING.md                  # Full testing guide ← start here
 │   └── *.md                        # Per-service design docs
-└── backend.tf.example              # Remote state backend template
+├── backend.tf.example              # REMOTE state template (HCS OBS — default)
+└── backend-local.tf.example        # LOCAL state template (testing / sandbox)
 ```
 
 ## Prerequisites
@@ -61,6 +62,7 @@ terraform version   # must be >= 1.6
 | [docs/08-MODULE-GAUSSDB.md](docs/08-MODULE-GAUSSDB.md) | GaussDB OpenGauss instances |
 | [docs/09-MODULE-RDS.md](docs/09-MODULE-RDS.md) | RDS MySQL and PostgreSQL instances |
 | [docs/TESTING.md](docs/TESTING.md) | Module unit and integration testing guide |
+| [docs/LOCAL-VS-REMOTE-STATE.md](docs/LOCAL-VS-REMOTE-STATE.md) | When and how to use local state for personal testing |
 
 ### Quick Start — Testing Modules
 
@@ -86,7 +88,7 @@ chmod +x scripts/*.sh
 # 2. Load credentials (every new terminal)
 source ~/.hcs-credentials.sh
 
-# 3. One-time environment setup
+# 3. One-time environment setup (asks: local or remote state?)
 ./scripts/setup-environment.sh dev
 
 # 4. Initialise, preview, and apply
@@ -97,11 +99,36 @@ source ~/.hcs-credentials.sh
 
 See [docs/00-SETUP.md](docs/00-SETUP.md) for the complete step-by-step guide.
 
+### Local state for personal testing
+
+By default, Terraform state is stored remotely in an HCS OBS bucket so the whole team shares it. For personal sandboxing, you can switch any environment to **local state** — a file on your laptop only. Useful for:
+
+- Trying out a module change before opening a PR
+- Reproducing a bug without affecting the team's shared state
+- Learning Terraform behaviour in a zero-risk way
+
+**Never** use local state for staging or production — state on one developer's laptop cannot be shared, locked, or recovered if the laptop is lost.
+
+Quickest path:
+
+```bash
+# Use the wizard — when prompted, type 'local' instead of 'remote'
+./scripts/setup-environment.sh dev
+
+# Or switch manually
+cp environments/dev/backend-local.tf.example environments/dev/backend.tf
+./scripts/tf.sh dev init -reconfigure
+```
+
+The `tf.sh` wrapper shows the active backend in its banner (`Backend: LOCAL` or `Backend: REMOTE`) so you always know which one is in use.
+
+Full guide, including how to migrate state between backends: [docs/LOCAL-VS-REMOTE-STATE.md](docs/LOCAL-VS-REMOTE-STATE.md).
+
 ## Conventions
 
 - **Naming**: `<name_prefix>-<resource>` e.g. `myapp-dev-vpc`, `myapp-dev-web-sg`
 - **Tagging**: All resources carry `Environment`, `Project`, `Owner`, `ManagedBy=terraform`
-- **State**: Remote state in HCS OBS, one bucket per environment, state locking via OBS
+- **State**: Remote state in HCS OBS by default (one bucket per environment, locking via OBS). A **local backend** option is available for personal testing — see [docs/LOCAL-VS-REMOTE-STATE.md](docs/LOCAL-VS-REMOTE-STATE.md).
 - **Secrets**: Never commit credentials. Use `TF_VAR_` environment variables only.
 - **Tests**: Every module has a `tests/unit.tftest.hcl` file. Run before every PR.
 

@@ -44,8 +44,8 @@ run "dedicated_eips_created" {
   variables {
     name_prefix = "test"
     dedicated_eips = {
-      web-01 = { bandwidth_size = 10; ip_type = "eip_public_Internet_01" }
-      web-02 = { bandwidth_size = 5;  ip_type = "eip_public_Internet_01" }
+      web-01 = { bandwidth_size = 10, ip_type = "eip_public_Internet_01" }
+      web-02 = { bandwidth_size = 5, ip_type = "eip_public_Internet_01" }
     }
   }
 
@@ -74,7 +74,7 @@ run "shared_bandwidth_created" {
   variables {
     name_prefix = "test"
     shared_bandwidths = {
-      main-bw = { name = "test-shared-bw"; size = 100 }
+      main-bw = { name = "test-shared-bw", size = 100 }
     }
   }
 
@@ -103,7 +103,7 @@ run "shared_eips_with_bandwidth" {
   variables {
     name_prefix = "test"
     shared_bandwidths = {
-      pool = { name = "shared-pool"; size = 200 }
+      pool = { name = "shared-pool", size = 200 }
     }
     shared_eips = {
       eip-a = { bandwidth_key = "pool" }

@@ -1,0 +1,33 @@
+###############################################################################
+# backend-local.tf.example — LOCAL state for the dev environment (testing only)
+#
+# Copy this file to backend.tf to store Terraform state on your local disk
+# instead of in HCS OBS. Use this for personal testing — never for staging,
+# prod, or any shared environment.
+#
+# SWITCH TO LOCAL STATE:
+#   cp environments/dev/backend-local.tf.example environments/dev/backend.tf
+#   ./scripts/tf.sh dev init -reconfigure
+#
+# SWITCH BACK TO REMOTE (OBS) STATE:
+#   cp environments/dev/backend.tf.example environments/dev/backend.tf
+#   # edit backend.tf with your OBS bucket/endpoint
+#   ./scripts/tf.sh dev init -migrate-state    # offers to copy state up to OBS
+#
+# State file path when local:  environments/dev/terraform.tfstate (gitignored)
+###############################################################################
+
+terraform {
+  required_version = ">= 1.5.0"
+
+  required_providers {
+    hcs = {
+      source  = "huaweicloud/hcs"
+      version = "~> 2.4.0"
+    }
+  }
+
+  backend "local" {
+    path = "terraform.tfstate"
+  }
+}

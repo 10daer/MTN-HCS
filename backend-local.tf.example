@@ -1,0 +1,55 @@
+###############################################################################
+# backend-local.tf.example — LOCAL state template (for testing / personal sandbox)
+#
+# WHAT THIS IS
+#   This template makes Terraform store its state file on your local disk
+#   instead of in HCS OBS. Use it when you want to experiment without
+#   touching the team's shared state.
+#
+# WHEN TO USE LOCAL STATE
+#   ✓ Trying out a module change before opening a PR
+#   ✓ Working in a personal HCS project / sandbox
+#   ✓ Learning how Terraform behaves without risk to shared state
+#   ✓ Reproducing a bug locally
+#
+# WHEN *NOT* TO USE LOCAL STATE
+#   ✗ Staging or production — NEVER
+#   ✗ Any environment more than one person touches — state on one laptop
+#     cannot be shared, locked, or recovered if that laptop is lost
+#   ✗ CI/CD pipelines — they have no persistent disk
+#
+# HOW TO USE
+#   1. Copy this file to environments/<env>/backend.tf:
+#        cp environments/dev/backend-local.tf.example environments/dev/backend.tf
+#   2. Re-initialize Terraform:
+#        ./scripts/tf.sh dev init -reconfigure
+#   3. The state file will be created at environments/<env>/terraform.tfstate
+#      It is gitignored — never commit it.
+#
+# HOW TO SWITCH BACK TO REMOTE STATE
+#   1. Pull state down to a JSON file first if you want to keep it:
+#        cd environments/dev && terraform state pull > backup.tfstate.json
+#   2. Replace backend.tf with the remote template:
+#        cp environments/dev/backend.tf.example environments/dev/backend.tf
+#      Then edit it with your OBS bucket details.
+#   3. Re-init with migration:
+#        ./scripts/tf.sh dev init -migrate-state
+#      Terraform will offer to copy your local state up to OBS.
+###############################################################################
+
+terraform {
+  required_version = ">= 1.5.0"
+
+  required_providers {
+    hcs = {
+      source  = "huaweicloud/hcs"
+      version = "~> 2.4.0"
+    }
+  }
+
+  # Local backend — state lives in this directory as terraform.tfstate.
+  # The path is relative to the environment folder (where you run terraform).
+  backend "local" {
+    path = "terraform.tfstate"
+  }
+}

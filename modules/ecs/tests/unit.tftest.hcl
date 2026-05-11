@@ -56,8 +56,8 @@ run "single_instance_created" {
   command = apply
 
   variables {
-    name_prefix            = "myapp-dev-web"
-    default_key_pair       = "my-keypair"
+    name_prefix                = "myapp-dev-web"
+    default_key_pair           = "my-keypair"
     default_security_group_ids = ["sg-mock-id"]
     instances = {
       "web-01" = {
@@ -97,13 +97,13 @@ run "multiple_instances" {
   command = apply
 
   variables {
-    name_prefix      = "test"
-    default_key_pair = "kp"
+    name_prefix                = "test"
+    default_key_pair           = "kp"
     default_security_group_ids = ["sg-001"]
     instances = {
-      "web-01" = { flavor_id = "c6.large.2"; subnet_id = "subnet-pub-1"; system_disk_size = 40 }
-      "web-02" = { flavor_id = "c6.large.2"; subnet_id = "subnet-pub-2"; system_disk_size = 40 }
-      "app-01" = { flavor_id = "c6.xlarge.2"; subnet_id = "subnet-prv-1"; system_disk_size = 50 }
+      "web-01" = { flavor_id = "c6.large.2", subnet_id = "subnet-pub-1", system_disk_size = 40 }
+      "web-02" = { flavor_id = "c6.large.2", subnet_id = "subnet-pub-2", system_disk_size = 40 }
+      "app-01" = { flavor_id = "c6.xlarge.2", subnet_id = "subnet-prv-1", system_disk_size = 50 }
     }
   }
 
@@ -130,7 +130,7 @@ run "eip_assigned_when_requested" {
   command = apply
 
   variables {
-    name_prefix = "test"
+    name_prefix                = "test"
     default_security_group_ids = ["sg-001"]
     instances = {
       "web-01" = {
@@ -168,7 +168,7 @@ run "server_groups_created" {
   variables {
     name_prefix = "test"
     server_groups = {
-      web-aag = { name = "web-anti-affinity"; policies = ["anti-affinity"] }
+      web-aag = { name = "web-anti-affinity", policies = ["anti-affinity"] }
     }
     instances = {}
   }

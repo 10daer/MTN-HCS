@@ -100,10 +100,10 @@ run "mysql_database_and_account" {
       }
     }
     mysql_databases = {
-      app-db = { instance_key = "db"; name = "appdb"; character_set = "utf8mb4" }
+      app-db = { instance_key = "db", name = "appdb", character_set = "utf8mb4" }
     }
     mysql_accounts = {
-      app-user = { instance_key = "db"; name = "appuser"; password = "UserP@ss123" }
+      app-user = { instance_key = "db", name = "appuser", password = "UserP@ss123" }
     }
   }
 
@@ -137,18 +137,18 @@ run "multiple_instances" {
   variables {
     instances = {
       mysql-01 = {
-        name = "db-mysql"; flavor = "rds.mysql.s1.small"
-        vpc_id = "vpc-id"; subnet_id = "subnet-id"; security_group_id = "sg-id"
+        name              = "db-mysql", flavor = "rds.mysql.s1.small"
+        vpc_id            = "vpc-id", subnet_id = "subnet-id", security_group_id = "sg-id"
         availability_zone = ["az1.dc0"]
-        db_type = "MySQL"; db_version = "8.0"; db_password = "Pass123!"
-        volume_type = "ULTRAHIGH"; volume_size = 100
+        db_type           = "MySQL", db_version = "8.0", db_password = "Pass123!"
+        volume_type       = "ULTRAHIGH", volume_size = 100
       }
       pg-01 = {
-        name = "db-pg"; flavor = "rds.pg.s1.small"
-        vpc_id = "vpc-id"; subnet_id = "subnet-id"; security_group_id = "sg-id"
+        name              = "db-pg", flavor = "rds.pg.s1.small"
+        vpc_id            = "vpc-id", subnet_id = "subnet-id", security_group_id = "sg-id"
         availability_zone = ["az1.dc0"]
-        db_type = "PostgreSQL"; db_version = "14"; db_password = "Pass123!"
-        volume_type = "ULTRAHIGH"; volume_size = 100
+        db_type           = "PostgreSQL", db_version = "14", db_password = "Pass123!"
+        volume_type       = "ULTRAHIGH", volume_size = 100
       }
     }
   }

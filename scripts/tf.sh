@@ -211,9 +211,17 @@ check_env_files() {
     if [[ ! -f "${ENV_DIR}/backend.tf" ]]; then
       log_error "backend.tf not found in ${ENV_DIR}"
       echo ""
-      echo "  Create it by copying the template:"
-      echo -e "  ${YELLOW}cp ${REPO_ROOT}/backend.tf.example ${ENV_DIR}/backend.tf${RESET}"
-      echo "  Then fill in your OBS bucket name, region, and endpoint."
+      echo "  Easiest fix — run the setup wizard (asks local vs remote):"
+      echo -e "  ${YELLOW}./scripts/setup-environment.sh ${ENVIRONMENT}${RESET}"
+      echo ""
+      echo "  Or copy a template manually:"
+      echo -e "  ${YELLOW}# Remote (OBS) state — for shared/team environments${RESET}"
+      echo -e "  ${YELLOW}cp ${ENV_DIR}/backend.tf.example ${ENV_DIR}/backend.tf${RESET}"
+      echo ""
+      echo -e "  ${YELLOW}# Local state — for personal testing only${RESET}"
+      echo -e "  ${YELLOW}cp ${ENV_DIR}/backend-local.tf.example ${ENV_DIR}/backend.tf${RESET}"
+      echo ""
+      echo "  See docs/LOCAL-VS-REMOTE-STATE.md for the difference."
       echo ""
       all_ok=false
     else
@@ -248,16 +256,47 @@ check_env_files() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Detect which backend is configured in backend.tf
+#   Returns: "local", "remote (s3/obs)", or "unknown"
+# ─────────────────────────────────────────────────────────────────────────────
+detect_backend() {
+  local backend_file="${ENV_DIR}/backend.tf"
+  if [[ ! -f "$backend_file" ]]; then
+    echo "none"
+    return
+  fi
+  if grep -qE '^[[:space:]]*backend[[:space:]]+"local"' "$backend_file"; then
+    echo "LOCAL (file on this machine)"
+  elif grep -qE '^[[:space:]]*backend[[:space:]]+"s3"' "$backend_file"; then
+    echo "REMOTE (HCS OBS)"
+  else
+    echo "unknown"
+  fi
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Print the header banner
 # ─────────────────────────────────────────────────────────────────────────────
 print_banner() {
+  local backend_type
+  backend_type="$(detect_backend)"
+
   log_divider
   echo -e "  ${BOLD}Terraform HCS Wrapper${RESET}"
   echo -e "  Environment  : ${GREEN}${BOLD}${ENVIRONMENT}${RESET}"
   echo -e "  Command      : ${CYAN}${COMMAND}${RESET}"
   echo -e "  Directory    : ${ENV_DIR}"
+  echo -e "  Backend      : ${YELLOW}${backend_type}${RESET}"
   echo -e "  Timestamp    : $(date '+%Y-%m-%d %H:%M:%S %Z')"
   log_divider
+
+  # Loud warning if local backend used in non-dev
+  if [[ "$backend_type" == "LOCAL (file on this machine)" && "$ENVIRONMENT" != "dev" ]]; then
+    echo ""
+    log_warn "LOCAL backend in use for environment '${ENVIRONMENT}'."
+    log_warn "Local state cannot be shared with the team — see docs/LOCAL-VS-REMOTE-STATE.md"
+    echo ""
+  fi
 }
 
 # ─────────────────────────────────────────────────────────────────────────────

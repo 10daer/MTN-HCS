@@ -131,16 +131,16 @@ variable "instances" {
       delete_eip_on_termination   – (default true).
   EOT
   type = map(object({
-    flavor_id               = string
-    subnet_id               = string
-    name                    = optional(string)
-    image_id                = optional(string)
-    image_name              = optional(string)
-    availability_zone       = optional(string)
-    security_group_ids      = optional(list(string), [])
-    fixed_ip_v4             = optional(string)
-    ipv6_enable             = optional(bool, false)
-    source_dest_check       = optional(bool, true)
+    flavor_id          = string
+    subnet_id          = string
+    name               = optional(string)
+    image_id           = optional(string)
+    image_name         = optional(string)
+    availability_zone  = optional(string)
+    security_group_ids = optional(list(string), [])
+    fixed_ip_v4        = optional(string)
+    ipv6_enable        = optional(bool, false)
+    source_dest_check  = optional(bool, true)
     extra_networks = optional(list(object({
       subnet_id         = string
       fixed_ip_v4       = optional(string)

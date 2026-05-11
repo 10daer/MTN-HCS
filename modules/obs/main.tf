@@ -50,11 +50,11 @@ resource "hcs_obs_bucket" "this" {
   force_destroy = lookup(each.value, "force_destroy", false)
 
   # Optional overrides
-  quota                = lookup(each.value, "quota", null)
-  parallel_fs          = lookup(each.value, "parallel_fs", null)
+  quota                 = lookup(each.value, "quota", null)
+  parallel_fs           = lookup(each.value, "parallel_fs", null)
   enterprise_project_id = lookup(each.value, "enterprise_project_id", null)
-  region               = lookup(each.value, "region", null)
-  cluster_group_id     = lookup(each.value, "cluster_group_id", null)
+  region                = lookup(each.value, "region", null)
+  cluster_group_id      = lookup(each.value, "cluster_group_id", null)
 
   # Fusion bucket
   bucket_redundancy        = lookup(each.value, "bucket_redundancy", null)

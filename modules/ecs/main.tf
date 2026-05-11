@@ -52,11 +52,11 @@ locals {
     for k, v in var.instances :
     k => (
       v.image_id != null
-        ? v.image_id
-        : (v.image_name != null
-            ? data.hcs_ims_images.per_instance[k].images[0].id
-            : data.hcs_ims_images.default.images[0].id
-          )
+      ? v.image_id
+      : (v.image_name != null
+        ? data.hcs_ims_images.per_instance[k].images[0].id
+        : data.hcs_ims_images.default.images[0].id
+      )
     )
   }
 
@@ -101,15 +101,15 @@ resource "hcs_ecs_compute_server_group" "this" {
 resource "hcs_ecs_compute_instance" "this" {
   for_each = var.instances
 
-  name               = try(each.value.name, "${var.name_prefix}-${each.key}")
-  flavor_id          = each.value.flavor_id
-  image_id           = local.resolved_image_ids[each.key]
-  availability_zone  = try(each.value.availability_zone, local.effective_azs[0])
-  security_group_ids = local.resolved_sg_ids[each.key]
-  key_pair           = try(each.value.key_pair, var.default_key_pair)
-  admin_pass         = try(each.value.admin_pass, null)
-  user_data          = try(each.value.user_data, null)
-  power_action       = try(each.value.power_action, null)
+  name                  = try(each.value.name, "${var.name_prefix}-${each.key}")
+  flavor_id             = each.value.flavor_id
+  image_id              = local.resolved_image_ids[each.key]
+  availability_zone     = try(each.value.availability_zone, local.effective_azs[0])
+  security_group_ids    = local.resolved_sg_ids[each.key]
+  key_pair              = try(each.value.key_pair, var.default_key_pair)
+  admin_pass            = try(each.value.admin_pass, null)
+  user_data             = try(each.value.user_data, null)
+  power_action          = try(each.value.power_action, null)
   enterprise_project_id = try(each.value.enterprise_project_id, null)
 
   # ── System disk ─────────────────────────

@@ -180,6 +180,11 @@ echo 'source ~/.hcs-credentials.sh' >> ~/.bashrc
 
 ## Step 4 — Create the OBS State Bucket (Manual, One-Time)
 
+> **Skip this step if you only want to use LOCAL state for testing.**
+> Local state stores the state file on your laptop and needs no OBS bucket.
+> See [LOCAL-VS-REMOTE-STATE.md](LOCAL-VS-REMOTE-STATE.md) for when to use which.
+> For any shared environment (dev with multiple devs, staging, prod), do this step.
+
 Terraform stores its state in HCS OBS. This bucket must exist **before** `terraform init` can run. Terraform cannot create its own backend bucket.
 
 1. Log in to the HCS console
@@ -210,17 +215,30 @@ Note down:
 
 Two files must be created locally per environment. Both are `.gitignore`d — never commit them.
 
+### Choosing a backend: LOCAL or REMOTE?
+
+The setup wizard will ask which kind of state backend you want:
+
+| Choice | What it is | When to pick it |
+|---|---|---|
+| **REMOTE** (HCS OBS) | State stored in a shared OBS bucket | Default. Use for any shared environment (dev with multiple devs, staging, prod, CI). Requires Step 4 done. |
+| **LOCAL** | State stored as a file on your laptop | Personal testing / sandbox / learning. Skip Step 4. Never use for staging or prod. |
+
+If unsure, pick **remote**. See [LOCAL-VS-REMOTE-STATE.md](LOCAL-VS-REMOTE-STATE.md) for a deeper explanation, including how to switch between the two later.
+
 ### Option A — Use the setup script (recommended)
 
 ```bash
 source ~/.hcs-credentials.sh    # credentials must be loaded first
 
 ./scripts/setup-environment.sh dev
+# When prompted "Which backend? [local/remote]", pick one.
 ```
 
 The script will interactively prompt for:
 
-- OBS bucket name and endpoint (from Step 4)
+- **Backend type:** local or remote
+- If remote: OBS bucket name, key, region, and endpoint (from Step 4)
 - HCS region, domain/tenant name, VDC project name
 - Project name, owner tag
 - Network CIDRs, availability zones, SSH key pair name
@@ -235,7 +253,7 @@ cat environments/dev/terraform.tfvars
 
 ### Option B — Configure manually
 
-#### `environments/dev/backend.tf`
+#### `environments/dev/backend.tf` (remote / OBS — default)
 
 ```bash
 cp environments/dev/backend.tf.example environments/dev/backend.tf
@@ -268,6 +286,16 @@ terraform {
   }
 }
 ```
+
+#### `environments/dev/backend.tf` (local — testing only)
+
+If you picked local state instead, copy the local template — no editing needed:
+
+```bash
+cp environments/dev/backend-local.tf.example environments/dev/backend.tf
+```
+
+The state file will be created at `environments/dev/terraform.tfstate` after `init` (gitignored). Reminder: local state is only suitable for personal testing — see [LOCAL-VS-REMOTE-STATE.md](LOCAL-VS-REMOTE-STATE.md).
 
 #### `environments/dev/terraform.tfvars`
 

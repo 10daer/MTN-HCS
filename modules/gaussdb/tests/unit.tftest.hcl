@@ -58,14 +58,14 @@ run "single_gaussdb_instance" {
   variables {
     instances = {
       primary = {
-        name              = "myapp-dev-gaussdb"
-        flavor            = "gaussdb.opengauss.ee.dn.m6.2xlarge.8.in"
-        password          = "SecureP@ssword1"
-        vpc_id            = "vpc-mock-id"
-        subnet_id         = "subnet-mock-id"
-        ha_mode           = "centralization_standard"
-        volume_type       = "ULTRAHIGH"
-        volume_size       = 40
+        name        = "myapp-dev-gaussdb"
+        flavor      = "gaussdb.opengauss.ee.dn.m6.2xlarge.8.in"
+        password    = "SecureP@ssword1"
+        vpc_id      = "vpc-mock-id"
+        subnet_id   = "subnet-mock-id"
+        ha_mode     = "centralization_standard"
+        volume_type = "ULTRAHIGH"
+        volume_size = 40
       }
     }
   }
@@ -99,8 +99,8 @@ run "parameter_template_created" {
         name           = "high-performance"
         engine_version = "3.1"
         instance_mode  = "enterprise"
-        parameters     = [
-          { name = "work_mem"; value = "65536" }
+        parameters = [
+          { name = "work_mem", value = "65536" }
         ]
       }
     }

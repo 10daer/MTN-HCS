@@ -108,8 +108,8 @@ run "ingress_rules_created" {
       web = {
         description = "Web tier"
         ingress_rules = [
-          { protocol = "tcp"; port_min = 80;  port_max = 80;  cidr = "0.0.0.0/0"; description = "HTTP"  },
-          { protocol = "tcp"; port_min = 443; port_max = 443; cidr = "0.0.0.0/0"; description = "HTTPS" }
+          { protocol = "tcp", port_min = 80, port_max = 80, cidr = "0.0.0.0/0", description = "HTTP" },
+          { protocol = "tcp", port_min = 443, port_max = 443, cidr = "0.0.0.0/0", description = "HTTPS" }
         ]
       }
     }
@@ -142,17 +142,17 @@ run "multi_tier_ingress" {
     security_groups = {
       web = {
         ingress_rules = [
-          { protocol = "tcp"; port_min = 443; port_max = 443; cidr = "0.0.0.0/0" }
+          { protocol = "tcp", port_min = 443, port_max = 443, cidr = "0.0.0.0/0" }
         ]
       }
       app = {
         ingress_rules = [
-          { protocol = "tcp"; port_min = 8080; port_max = 8080; remote_sg_key = "web" }
+          { protocol = "tcp", port_min = 8080, port_max = 8080, remote_sg_key = "web" }
         ]
       }
       db = {
         ingress_rules = [
-          { protocol = "tcp"; port_min = 5432; port_max = 5432; remote_sg_key = "app" }
+          { protocol = "tcp", port_min = 5432, port_max = 5432, remote_sg_key = "app" }
         ]
       }
     }

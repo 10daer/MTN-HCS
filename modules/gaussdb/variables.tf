@@ -49,22 +49,22 @@ variable "instances" {
       timeout_delete         – Delete timeout (default "45m").
   EOT
   type = map(object({
-    name              = string
-    flavor            = string
-    password          = string
-    vpc_id            = string
-    subnet_id         = string
-    ha_mode           = string
-    volume_type       = string
-    volume_size       = number
-    security_group_id = optional(string)
-    availability_zone = optional(string)
-    az_count          = optional(number, 3)
-    solution          = optional(string)
-    sharding_num      = optional(number)
-    coordinator_num   = optional(number)
-    replica_num       = optional(number)
-    port              = optional(string)
+    name                    = string
+    flavor                  = string
+    password                = string
+    vpc_id                  = string
+    subnet_id               = string
+    ha_mode                 = string
+    volume_type             = string
+    volume_size             = number
+    security_group_id       = optional(string)
+    availability_zone       = optional(string)
+    az_count                = optional(number, 3)
+    solution                = optional(string)
+    sharding_num            = optional(number)
+    coordinator_num         = optional(number)
+    replica_num             = optional(number)
+    port                    = optional(string)
     ha_replication_mode     = optional(string, "sync")
     ha_consistency          = optional(string, "strong")
     ha_consistency_protocol = optional(string)
@@ -82,7 +82,7 @@ variable "instances" {
     timeout_update          = optional(string, "90m")
     timeout_delete          = optional(string, "45m")
   }))
-  default  = {}
+  default   = {}
   sensitive = false
 
   validation {

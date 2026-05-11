@@ -9,13 +9,13 @@
 
 mock_provider "hcs" {
   mock_data "hcs_vdc_user" {
-    defaults = { id = "mock-user-id"; name = "existing-user" }
+    defaults = { id = "mock-user-id", name = "existing-user" }
   }
   mock_data "hcs_vdc_group" {
-    defaults = { id = "mock-group-id"; name = "existing-group" }
+    defaults = { id = "mock-group-id", name = "existing-group" }
   }
   mock_data "hcs_vdc_role" {
-    defaults = { id = "mock-role-id"; name = "existing-role" }
+    defaults = { id = "mock-role-id", name = "existing-role" }
   }
 }
 
@@ -54,8 +54,8 @@ run "users_created" {
   variables {
     vdc_id = "mock-vdc-id"
     users = {
-      alice = { name = "alice"; display_name = "Alice Smith"; auth_type = "LOCAL_AUTH" }
-      bob   = { name = "bob";   display_name = "Bob Jones";   auth_type = "LOCAL_AUTH" }
+      alice = { name = "alice", display_name = "Alice Smith", auth_type = "LOCAL_AUTH" }
+      bob   = { name = "bob", display_name = "Bob Jones", auth_type = "LOCAL_AUTH" }
     }
   }
 
@@ -84,8 +84,8 @@ run "groups_created" {
   variables {
     vdc_id = "mock-vdc-id"
     groups = {
-      admins  = { name = "admins";  description = "Administrator group" }
-      viewers = { name = "viewers"; description = "Read-only access group" }
+      admins  = { name = "admins", description = "Administrator group" }
+      viewers = { name = "viewers", description = "Read-only access group" }
     }
   }
 
@@ -113,7 +113,7 @@ run "custom_roles_created" {
         name        = "ReadOnlyRole"
         description = "Read-only access to all resources"
         type        = "XA"
-        policy      = jsonencode({
+        policy = jsonencode({
           Version = "1.1"
           Statement = [{
             Effect   = "Allow"
@@ -150,8 +150,8 @@ run "projects_created" {
   variables {
     vdc_id = "mock-vdc-id"
     projects = {
-      dev-project  = { name = "region1_dev";  display_name = "Development" }
-      prod-project = { name = "region1_prod"; display_name = "Production" }
+      dev-project  = { name = "region1_dev", display_name = "Development" }
+      prod-project = { name = "region1_prod", display_name = "Production" }
     }
   }
 
