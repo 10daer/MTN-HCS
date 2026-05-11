@@ -43,7 +43,6 @@ variable "buckets" {
       enterprise_project_id – (Optional) Enterprise project ID.
       region              – (Optional) Override region.
       cluster_group_id    – (Optional) ForceNew — HCS cluster group.
-      user_domain_names   – (Optional) list(string) — custom domain names.
       bucket_redundancy   – (Optional) "CLASSIC" | "FUSION". Default: "CLASSIC".
       fusion_allow_upgrade    – (Optional) Bool. Default: false.
       fusion_allow_alternative – (Optional) Bool. Default: false.

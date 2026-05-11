@@ -70,21 +70,19 @@ resource "hcs_obs_bucket" "this" {
   policy        = lookup(each.value, "policy", null)
   policy_format = lookup(each.value, "policy_format", null)
 
-  # Custom domain names
-  dynamic "user_domain_names" {
-    for_each = lookup(each.value, "user_domain_names", null) != null ? each.value.user_domain_names : []
-    content {
-      name = user_domain_names.value
-    }
-  }
-
-  # Logging — target_bucket_key references another key in var.buckets
+  # Logging — target_bucket_key references either another bucket in var.buckets
+  # or an existing bucket via the "existing:<key>" prefix.
+  #
+  # NOTE: we intentionally read from data.hcs_obs_buckets.existing directly
+  # rather than through local.resolved_bucket_ids — the local depends on
+  # hcs_obs_bucket.this, so referencing it here would create a graph cycle
+  # even when no bucket actually configures logging.
   dynamic "logging" {
     for_each = lookup(each.value, "logging", null) != null ? [each.value.logging] : []
     content {
       target_bucket = (
         startswith(logging.value.target_bucket_key, "existing:")
-        ? local.resolved_bucket_ids[logging.value.target_bucket_key]
+        ? data.hcs_obs_buckets.existing[trimprefix(logging.value.target_bucket_key, "existing:")].buckets[0].bucket
         : hcs_obs_bucket.this[logging.value.target_bucket_key].id
       )
       target_prefix = lookup(logging.value, "target_prefix", "log/")
@@ -177,15 +175,6 @@ resource "hcs_obs_bucket_acl" "this" {
       access_to_acl    = lookup(public_permission.value, "access_to_acl", [])
     }
   }
-
-  # Log-delivery permissions
-  dynamic "log_delivery_permission" {
-    for_each = lookup(each.value, "log_delivery_permission", null) != null ? [each.value.log_delivery_permission] : []
-    content {
-      access_to_bucket = lookup(log_delivery_permission.value, "access_to_bucket", [])
-      access_to_acl    = lookup(log_delivery_permission.value, "access_to_acl", [])
-    }
-  }
 }
 
 # ─────────────────────────────────────────────
@@ -231,14 +220,9 @@ resource "hcs_obs_bucket_object_acl" "this" {
     : each.value.object_key
   )
 
-  # Owner permissions
-  dynamic "owner_permission" {
-    for_each = lookup(each.value, "owner_permission", null) != null ? [each.value.owner_permission] : []
-    content {
-      access_to_object = lookup(owner_permission.value, "access_to_object", [])
-      access_to_acl    = lookup(owner_permission.value, "access_to_acl", [])
-    }
-  }
+  # NOTE: hcs_obs_bucket_object_acl does NOT accept owner_permission — the
+  # provider computes it from the bucket owner automatically. Configure
+  # account_permissions / public_permission instead.
 
   # Per-account permissions
   dynamic "account_permission" {
