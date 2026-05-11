@@ -44,7 +44,25 @@ MTN-HCS/
 terraform version   # must be >= 1.6
 ```
 
-## Quick Start — Testing Modules
+## Documentation
+
+### Setup & Deployment Guides
+
+| Document | Description |
+|---|---|
+| [docs/00-SETUP.md](docs/00-SETUP.md) | **Start here** — clone, credentials, OBS state bucket, init, validate |
+| [docs/01-MODULE-NETWORK.md](docs/01-MODULE-NETWORK.md) | VPC, subnets, NAT gateway (deploy 1st) |
+| [docs/02-MODULE-SECURITY.md](docs/02-MODULE-SECURITY.md) | Tiered security groups (deploy 2nd) |
+| [docs/03-MODULE-EIP.md](docs/03-MODULE-EIP.md) | Elastic IPs and shared bandwidth pools |
+| [docs/04-MODULE-ECS.md](docs/04-MODULE-ECS.md) | Web and app tier ECS instances |
+| [docs/05-MODULE-OBS.md](docs/05-MODULE-OBS.md) | Object storage buckets |
+| [docs/06-MODULE-VDC.md](docs/06-MODULE-VDC.md) | Users, groups, roles, identity management |
+| [docs/07-MODULE-CCE.md](docs/07-MODULE-CCE.md) | Kubernetes cluster and node pools |
+| [docs/08-MODULE-GAUSSDB.md](docs/08-MODULE-GAUSSDB.md) | GaussDB OpenGauss instances |
+| [docs/09-MODULE-RDS.md](docs/09-MODULE-RDS.md) | RDS MySQL and PostgreSQL instances |
+| [docs/TESTING.md](docs/TESTING.md) | Module unit and integration testing guide |
+
+### Quick Start — Testing Modules
 
 No credentials required for static and unit tests.
 
@@ -57,31 +75,27 @@ chmod +x scripts/*.sh
 
 # Unit tests — mock provider, no credentials
 ./scripts/test-module.sh ecs --level unit
-
-# Run all modules, all levels (static + unit)
-./scripts/test-module.sh --all --level static
-./scripts/test-module.sh --all --level unit
 ```
 
-See [docs/TESTING.md](docs/TESTING.md) for the full guide.
-
-## Quick Start — Deploying an Environment
+### Quick Start — Deploying an Environment
 
 ```bash
-# 1. Set credentials
-export TF_VAR_access_key="AK..."
-export TF_VAR_secret_key="SK..."
+# 1. One-time credentials setup
+./scripts/setup-credentials.sh
 
-# 2. One-time environment setup (creates backend.tf + terraform.tfvars)
+# 2. Load credentials (every new terminal)
+source ~/.hcs-credentials.sh
+
+# 3. One-time environment setup
 ./scripts/setup-environment.sh dev
 
-# 3. Initialise, preview, and apply
+# 4. Initialise, preview, and apply
 ./scripts/tf.sh dev init
 ./scripts/tf.sh dev plan
 ./scripts/tf.sh dev apply
 ```
 
-See [SETUP-INSTRUCTIONS.md](SETUP-INSTRUCTIONS.md) for full first-time setup.
+See [docs/00-SETUP.md](docs/00-SETUP.md) for the complete step-by-step guide.
 
 ## Conventions
 
