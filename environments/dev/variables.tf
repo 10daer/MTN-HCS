@@ -14,9 +14,23 @@ variable "secret_key" {
 }
 
 variable "hcs_auth_url" {
-  description = "IAM endpoint for private HCS. e.g. https://iam.hcs.example.com/v3"
+  description = <<-EOT
+    REQUIRED for HCS private cloud. The IAM endpoint URL — used by the
+    provider to authenticate and to resolve project_name to a project ID.
+
+    Format:  https://iam-apigateway-proxy.<your-hcs-domain>/v3
+    Example: https://iam-apigateway-proxy.mtn.com/v3
+
+    If left empty, the provider builds a malformed URL like
+    https://iam-apigateway-proxy.:443/... and every API call fails.
+  EOT
   type        = string
   default     = ""
+
+  validation {
+    condition     = var.hcs_auth_url == "" || can(regex("^https?://[^/]+/v3/?$", var.hcs_auth_url))
+    error_message = "hcs_auth_url should end in /v3 — example: https://iam-apigateway-proxy.your-domain/v3"
+  }
 }
 
 variable "region" {

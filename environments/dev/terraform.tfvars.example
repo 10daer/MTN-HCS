@@ -2,16 +2,24 @@
 # Credentials: set via env vars to avoid committing secrets
 #   export TF_VAR_access_key="<your-ak>"
 #   export TF_VAR_secret_key="<your-sk>"
-access_key      = ""    # override with TF_VAR_access_key env var
-secret_key      = ""    # override with TF_VAR_secret_key env var
+access_key = "" # override with TF_VAR_access_key env var
+secret_key = "" # override with TF_VAR_secret_key env var
 
-hcs_auth_url    = ""        # leave empty when using AK/SK auth
-region          = "<your-hcs-region>"       # e.g. MTN_Cloud
-domain_name     = "<your-tenant-name>"      # HCS tenant / domain
-project_name    = "<your-vdc-project>"      # HCS project / VDC
+# REQUIRED — the IAM endpoint URL. The provider uses this to authenticate
+# and to resolve project_name → project_id before any API call. If you
+# leave it empty the provider falls back to a built-in template
+# (`iam-apigateway-proxy.<empty>`) and every call fails with a malformed-URL
+# error like:
+#   Get "https://iam-apigateway-proxy.:443/v3/projects?name=..."
+hcs_auth_url    = "https://iam-apigateway-proxy.<your-domain>/v3"
+region          = "<your-hcs-region>"  # e.g. MTN_Cloud
+domain_name     = "<your-tenant-name>" # HCS tenant / domain
+project_name    = "<your-vdc-project>" # HCS project / VDC
 skip_tls_verify = true
 
 # ── Service Endpoint Overrides ───────────────────────────────────────────────
+# These override per-service URLs. The IAM line here is for service-level
+# IAM calls — it does NOT replace hcs_auth_url above; the provider needs both.
 endpoints = {
   ecs = "https://ecs.<region>.<your-domain>"
   ims = "https://ims.<region>.<your-domain>"
