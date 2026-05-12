@@ -143,16 +143,30 @@ run_static() {
   # Validate (requires init to download provider schemas)
   log_info "Validating module syntax ..."
   pushd "${module_dir}" > /dev/null
-  if terraform init -backend=false -upgrade -input=false -no-color > /dev/null 2>&1; then
-    if terraform validate -no-color 2>&1; then
+  local init_log
+  init_log="$(mktemp)"
+  if terraform init -backend=false -upgrade -input=false -no-color > "${init_log}" 2>&1; then
+    if terraform validate -no-color; then
       log_success "validate: module config is valid"
     else
       log_error "validate: module has configuration errors"
       passed=false
     fi
   else
-    log_warn "validate: init failed (provider download issue?). Skipping validate."
+    # Offline / network failures are warnings (so contributors without HCS
+    # network access can still run static fmt). Anything else is a real
+    # error that should fail the run — silently skipping has hidden real
+    # config bugs in the past.
+    if grep -qE 'no such host|network is unreachable|dial tcp|connection refused|timeout|i/o timeout|certificate' "${init_log}"; then
+      log_warn "validate: init failed due to network/provider-download issue — skipping validate."
+      log_warn "  (run with HCS network access to validate this module)"
+    else
+      log_error "validate: init failed (not a network issue) — see error below"
+      cat "${init_log}" | sed 's/^/    /' >&2
+      passed=false
+    fi
   fi
+  rm -f "${init_log}"
   popd > /dev/null
 
   [[ "$passed" == true ]]

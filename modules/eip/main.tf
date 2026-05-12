@@ -16,9 +16,10 @@
 resource "hcs_vpc_bandwidth" "this" {
   for_each = var.shared_bandwidths
 
-  name                  = each.value.name
-  size                  = each.value.size
-  enterprise_project_id = try(each.value.enterprise_project_id, null)
+  name = each.value.name
+  size = each.value.size
+  # NOTE: hcs_vpc_bandwidth in huaweicloud/hcs ~> 2.4.0 does NOT accept
+  # enterprise_project_id (only hcs_vpc_eip does). Don't re-add this.
 
   timeouts {
     create = "10m"

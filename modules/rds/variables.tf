@@ -118,8 +118,11 @@ variable "mysql_accounts" {
     password     = string
     hosts        = optional(list(string), ["%"])
   }))
-  default   = {}
-  sensitive = true
+  default = {}
+  # NOTE: do not mark this whole map sensitive — Terraform forbids sensitive
+  # values as for_each keys. The password field is already redacted by the
+  # provider schema on hcs_rds_mysql_account.password, so plan/apply output
+  # will not leak the password.
 }
 
 # ─────────────────────────────────────────────
@@ -187,8 +190,9 @@ variable "pg_accounts" {
     name         = string
     password     = string
   }))
-  default   = {}
-  sensitive = true
+  default = {}
+  # NOTE: see mysql_accounts above — Terraform forbids sensitive values as
+  # for_each keys; password is already sensitive at the resource level.
 }
 
 # ─────────────────────────────────────────────
@@ -266,12 +270,22 @@ variable "sql_audits" {
 # ─────────────────────────────────────────────
 variable "existing_instances" {
   description = <<-EOT
-    Map of existing RDS instances to look up.
-    Key = lookup alias; value = { name = "<instance-name>" }.
-    Referenced as "existing:<key>" in instance_key fields.
+    NOT CURRENTLY SUPPORTED — kept for backward compatibility only.
+
+    The huaweicloud/hcs ~> 2.4.0 provider does not expose an
+    `hcs_rds_instance` data source, so this module cannot look up
+    pre-existing RDS instances by name. Must be left as {}.
+
+    If you need to reference an unmanaged instance, pass the instance
+    ID directly as a string in your downstream resource references.
   EOT
   type = map(object({
     name = string
   }))
   default = {}
+
+  validation {
+    condition     = length(var.existing_instances) == 0
+    error_message = "existing_instances is not supported (no hcs_rds_instance data source in the provider). Pass instance IDs directly as strings instead."
+  }
 }

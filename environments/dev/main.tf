@@ -61,7 +61,7 @@ module "network" {
   availability_zones   = var.availability_zones
   dns_servers          = var.dns_servers
   enable_nat_gateway   = var.enable_nat_gateway
-  nat_gateway_spec     = "1"    # small — sufficient for dev
+  nat_gateway_spec     = "1" # small — sufficient for dev
   nat_bandwidth_size   = 10
   eip_type             = var.eip_type
 }
@@ -90,7 +90,7 @@ module "security" {
     web = {
       description = "Web tier — HTTP/HTTPS from internet"
       ingress_rules = [
-        { protocol = "tcp", port_min = 80,  port_max = 80,  cidr = "0.0.0.0/0", description = "HTTP" },
+        { protocol = "tcp", port_min = 80, port_max = 80, cidr = "0.0.0.0/0", description = "HTTP" },
         { protocol = "tcp", port_min = 443, port_max = 443, cidr = "0.0.0.0/0", description = "HTTPS" }
       ]
     }
@@ -135,9 +135,9 @@ module "eip" {
   bandwidth_associations = var.eip_bandwidth_associations
   eip_associations       = var.eip_associations
 
-  external_bandwidth_ids  = var.eip_external_bandwidth_ids
-  external_eip_ids        = var.eip_external_eip_ids
-  external_eip_addresses  = var.eip_external_eip_addresses
+  external_bandwidth_ids = var.eip_external_bandwidth_ids
+  external_eip_ids       = var.eip_external_eip_ids
+  external_eip_addresses = var.eip_external_eip_addresses
 
   depends_on = [module.network]
 }
@@ -218,11 +218,11 @@ module "obs" {
   name_prefix = local.name_prefix
   tags        = local.common_tags
 
-  buckets         = var.obs_buckets
-  bucket_acls     = var.obs_bucket_acls
-  objects         = var.obs_objects
-  object_acls     = var.obs_object_acls
-  bucket_policies = var.obs_bucket_policies
+  buckets          = var.obs_buckets
+  bucket_acls      = var.obs_bucket_acls
+  objects          = var.obs_objects
+  object_acls      = var.obs_object_acls
+  bucket_policies  = var.obs_bucket_policies
   existing_buckets = var.obs_existing_buckets
 }
 

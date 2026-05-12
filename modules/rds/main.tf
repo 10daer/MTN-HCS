@@ -10,25 +10,21 @@
 # Locals
 # ─────────────────────────────────────────────
 locals {
-  # Resolved instance IDs — managed + existing
-  resolved_instance_ids = merge(
-    { for k, v in hcs_rds_instance.this : k => v.id },
-    { for k, v in data.hcs_rds_instance.existing : "existing:${k}" => v.id }
-  )
+  # Resolved instance IDs.
+  #
+  # NOTE: the huaweicloud/hcs ~> 2.4.0 provider does NOT expose an
+  # `hcs_rds_instance` data source, so we cannot look up pre-existing
+  # RDS instances by name from this module. The `existing_instances`
+  # variable is therefore not wired up; pass instance IDs literally if
+  # you need to reference unmanaged instances.
+  resolved_instance_ids = {
+    for k, v in hcs_rds_instance.this : k => v.id
+  }
 
   # Convenience: private IPs per instance
   resolved_private_ips = {
     for k, v in hcs_rds_instance.this : k => v.private_ips
   }
-}
-
-# ─────────────────────────────────────────────
-# Data Sources — Existing instances
-# ─────────────────────────────────────────────
-data "hcs_rds_instance" "existing" {
-  for_each = var.existing_instances
-
-  name = each.value.name
 }
 
 # ─────────────────────────────────────────────
