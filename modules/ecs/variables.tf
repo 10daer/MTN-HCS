@@ -182,7 +182,7 @@ variable "instances" {
   validation {
     condition = alltrue([
       for k, v in var.instances :
-      v.power_action == null || contains(["ON", "OFF", "REBOOT", "FORCE-OFF", "FORCE-REBOOT"], v.power_action)
+      v.power_action == null ? true : contains(["ON", "OFF", "REBOOT", "FORCE-OFF", "FORCE-REBOOT"], v.power_action)
     ])
     error_message = "power_action must be one of: ON, OFF, REBOOT, FORCE-OFF, FORCE-REBOOT."
   }

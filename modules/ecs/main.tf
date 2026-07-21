@@ -101,12 +101,12 @@ resource "hcs_ecs_compute_server_group" "this" {
 resource "hcs_ecs_compute_instance" "this" {
   for_each = var.instances
 
-  name                  = try(each.value.name, "${var.name_prefix}-${each.key}")
+  name                  = coalesce(each.value.name, "${var.name_prefix}-${each.key}")
   flavor_id             = each.value.flavor_id
   image_id              = local.resolved_image_ids[each.key]
-  availability_zone     = try(each.value.availability_zone, local.effective_azs[0])
+  availability_zone     = coalesce(each.value.availability_zone, local.effective_azs[0])
   security_group_ids    = local.resolved_sg_ids[each.key]
-  key_pair              = try(each.value.key_pair, var.default_key_pair)
+  key_pair              = each.value.key_pair != null ? each.value.key_pair : var.default_key_pair
   admin_pass            = try(each.value.admin_pass, null)
   user_data             = try(each.value.user_data, null)
   power_action          = try(each.value.power_action, null)
@@ -171,6 +171,8 @@ resource "hcs_ecs_compute_instance" "this" {
   lifecycle {
     ignore_changes = [user_data, image_id]
   }
+
+  depends_on = [hcs_ecs_compute_keypair.this]
 }
 
 # ─────────────────────────────────────────────

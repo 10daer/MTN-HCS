@@ -217,6 +217,16 @@ variable "image_name" {
   default     = "Ubuntu 22.04 server 64bit"
 }
 
+variable "server_ssh_public_key" {
+  description = "Contents of a local SSH public key (e.g. ~/.ssh/id_rsa.pub) to import as the server's HCS keypair."
+  type        = string
+}
+
+variable "server_eip_address" {
+  description = "Pre-existing, unbound HCS EIP address to associate with the server. Reused because Terraform-created EIPs currently fail with an external_networks error in this project."
+  type        = string
+}
+
 # ── Web Tier ─────────────────────────────────
 variable "web_instance_count" {
   description = "Number of web tier ECS instances to create."
@@ -385,8 +395,9 @@ variable "cce_namespaces" {
 # VDC — Users, Groups, Roles, Projects
 # ─────────────────────────────────────────────
 variable "vdc_id" {
-  description = "VDC ID (1-36 chars, lowercase letters/digits/hyphens)."
+  description = "VDC ID (1-36 chars, lowercase letters/digits/hyphens). Unused unless module.vdc is re-added to main.tf."
   type        = string
+  default     = ""
 }
 
 variable "domain_id" {
@@ -631,8 +642,9 @@ variable "rds_mysql_accounts" {
     password     = string
     hosts        = optional(list(string), ["%"])
   }))
-  default   = {}
-  sensitive = true
+  default = {}
+  # NOTE: do not mark sensitive — Terraform forbids sensitive values as for_each
+  # keys. Password is already redacted by the provider in plan/apply output.
 }
 
 variable "rds_mysql_privileges" {
@@ -665,8 +677,9 @@ variable "rds_pg_accounts" {
     name         = string
     password     = string
   }))
-  default   = {}
-  sensitive = true
+  default = {}
+  # NOTE: do not mark sensitive — Terraform forbids sensitive values as for_each
+  # keys. Password is already redacted by the provider in plan/apply output.
 }
 
 variable "rds_pg_privileges" {

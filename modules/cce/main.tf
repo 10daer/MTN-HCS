@@ -27,7 +27,7 @@ resource "hcs_cce_cluster" "this" {
   kube_proxy_mode     = var.kube_proxy_mode
 
   # Optional — expose the K8s API server via an EIP
-  eip = var.cluster_eip
+  eip = var.cluster_eip != "" ? var.cluster_eip : null
 
   # Multi-AZ for HA flavors (cce.s2.*)
   multi_az = var.cluster_multi_az
@@ -36,10 +36,7 @@ resource "hcs_cce_cluster" "this" {
   tags = var.tags
 
   # Cleanup behaviour on cluster delete
-  delete_evs = var.delete_storage_on_destroy ? "true" : "false"
-  delete_obs = var.delete_storage_on_destroy ? "true" : "false"
-  delete_sfs = var.delete_storage_on_destroy ? "true" : "false"
-  delete_efs = var.delete_storage_on_destroy ? "true" : "false"
+  # delete_all covers evs, obs, sfs, efs — the individual flags conflict with it
   delete_all = var.delete_storage_on_destroy ? "true" : "false"
 
   # Hibernate (useful for dev cost savings)
