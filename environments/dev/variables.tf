@@ -220,6 +220,12 @@ variable "image_name" {
   default     = "Ubuntu 22.04 server 64bit"
 }
 
+variable "server_ssh_public_key" {
+  description = "Contents of an SSH public key (e.g. ~/.ssh/id_rsa.pub) imported as the web keypair. Leave empty to create the instance with no keypair (matches the standalone config)."
+  type        = string
+  default     = ""
+}
+
 # ── Web Tier ─────────────────────────────────
 variable "web_instance_count" {
   description = "Number of web tier ECS instances to create."

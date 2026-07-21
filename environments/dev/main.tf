@@ -92,7 +92,17 @@ module "web" {
     module.security.security_group_ids["server"],
     module.network.default_security_group_id,
   ]
-  tags = local.common_tags
+  # Use the imported SSH key when one is supplied; otherwise no keypair
+  # (matches the standalone config, which sets no login credential).
+  default_key_pair = var.server_ssh_public_key == "" ? null : "${local.name_prefix}-web-key"
+  tags             = local.common_tags
+
+  keypairs = var.server_ssh_public_key == "" ? {} : {
+    web = {
+      name       = "${local.name_prefix}-web-key"
+      public_key = var.server_ssh_public_key
+    }
+  }
 
   instances = {
     "web-01" = {
