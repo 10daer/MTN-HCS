@@ -102,7 +102,9 @@ variable "private_subnet_cidrs" {
 }
 
 variable "availability_zones" {
-  type = list(string)
+  description = "Optional AZ override. Left empty by default — AZs are discovered from the live stack (data.hcs_availability_zones) instead of being hardcoded."
+  type        = list(string)
+  default     = []
 }
 
 variable "dns_servers" {
@@ -207,24 +209,15 @@ variable "eip_external_eip_addresses" {
 # ECS — Instances (Web & App Tiers)
 # ─────────────────────────────────────────────
 variable "key_pair_name" {
-  description = "Default SSH key pair injected into all ECS instances."
+  description = "Default SSH key pair injected into all ECS instances. Unused by the web tier (which mirrors the standalone config and sets no keypair); kept for other tiers."
   type        = string
+  default     = ""
 }
 
 variable "image_name" {
   description = "Default image name filter for ECS instances."
   type        = string
   default     = "Ubuntu 22.04 server 64bit"
-}
-
-variable "server_ssh_public_key" {
-  description = "Contents of a local SSH public key (e.g. ~/.ssh/id_rsa.pub) to import as the server's HCS keypair."
-  type        = string
-}
-
-variable "server_eip_address" {
-  description = "Pre-existing, unbound HCS EIP address to associate with the server. Reused because Terraform-created EIPs currently fail with an external_networks error in this project."
-  type        = string
 }
 
 # ── Web Tier ─────────────────────────────────
@@ -234,16 +227,31 @@ variable "web_instance_count" {
   default     = 2
 }
 
-variable "web_flavor_id" {
-  description = "Flavor for web tier instances e.g. c6.large.2."
-  type        = string
-  default     = "c6.large.2"
+# Flavor is discovered by vCPU/RAM (see data.hcs_ecs_compute_flavors.web in
+# main.tf) rather than hardcoded — a fixed flavor ID like "c6.large.2" is a
+# public-cloud name that does not exist on the MTN Lagos private stack.
+variable "web_flavor_cpu" {
+  description = "vCPU count used to discover the web tier flavor."
+  type        = number
+  default     = 2
+}
+
+variable "web_flavor_memory" {
+  description = "Memory (GB) used to discover the web tier flavor."
+  type        = number
+  default     = 4
+}
+
+variable "web_eip_bandwidth_size" {
+  description = "Bandwidth (Mbit/s) for the web tier EIP created by the ecs module."
+  type        = number
+  default     = 10
 }
 
 variable "web_system_disk_type" {
-  description = "System disk type for web tier instances."
+  description = "System disk type for web tier instances (e.g. SATA, SAS, SSD)."
   type        = string
-  default     = "business_type_01"
+  default     = "SATA"
 }
 
 variable "web_system_disk_size" {
