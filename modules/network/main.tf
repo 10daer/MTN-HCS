@@ -10,7 +10,9 @@
 # VPC
 # ─────────────────────────────────────────────
 resource "hcs_vpc" "this" {
-  name = "${var.name_prefix}-vpc"
+  # VPC (router) names must be unique within the HCS project. Set vpc_name to
+  # take over / sidestep a name already taken by a VPC outside this state.
+  name = var.vpc_name != null ? var.vpc_name : "${var.name_prefix}-vpc"
   cidr = var.vpc_cidr
 }
 

@@ -91,6 +91,14 @@ variable "vpc_cidr" {
   default = "10.10.0.0/16"
 }
 
+# VPC names must be unique inside an HCS project. Leave null to use
+# "<project>-<environment>-vpc"; set it when that name is already taken by a
+# VPC that is not managed by this state.
+variable "vpc_name" {
+  type    = string
+  default = null
+}
+
 variable "public_subnet_cidrs" {
   type    = list(string)
   default = ["10.10.1.0/24", "10.10.2.0/24"]
@@ -121,6 +129,17 @@ variable "eip_type" {
   description = "EIP publicip type — depends on HCS environment (e.g. eip_public_Internet_01)."
   type        = string
   default     = "eip_public_Internet_01"
+}
+
+variable "security_groups" {
+  description = <<-EOT
+    Security groups to create, consumed by main-security.tf. Set in
+    security.auto.tfvars, which ships with this environment's "server" group.
+    Key = group suffix; value = { description, ingress_rules = [...] }.
+    See modules/security/variables.tf for the rule schema.
+  EOT
+  type        = any
+  default     = {}
 }
 
 variable "trusted_ssh_cidr" {
@@ -280,6 +299,18 @@ variable "ecs_web_server_groups" {
   }
 }
 
+variable "ecs_web_subnet_id" {
+  description = "Explicit subnet ID for web tier instances. Empty = use the network stack's first public subnet."
+  type        = string
+  default     = ""
+}
+
+variable "ecs_web_security_group_ids" {
+  description = "Explicit security group IDs for web tier instances. Empty = use module.security's \"server\" group plus the network default SG."
+  type        = list(string)
+  default     = []
+}
+
 variable "ecs_web_keypairs" {
   description = "Managed keypairs for the web tier. See modules/ecs/variables.tf."
   type = map(object({
@@ -348,6 +379,30 @@ variable "ecs_app_keypairs" {
 # ─────────────────────────────────────────────
 # CCE — Kubernetes Cluster
 # ─────────────────────────────────────────────
+variable "cce_enabled" {
+  description = "Create the CCE cluster. A cluster is not map-driven, so this flag is what keeps the stack off."
+  type        = bool
+  default     = false
+}
+
+variable "cce_vpc_id" {
+  description = "Explicit VPC ID for the CCE cluster. Empty = use the network stack's VPC."
+  type        = string
+  default     = ""
+}
+
+variable "cce_subnet_id" {
+  description = "Explicit subnet ID for the CCE cluster (must have DNS configured). Empty = network stack's first public subnet."
+  type        = string
+  default     = ""
+}
+
+variable "cce_key_pair_name" {
+  description = "SSH key pair for CCE nodes (must already exist in HCS). Empty = fall back to var.key_pair_name."
+  type        = string
+  default     = ""
+}
+
 variable "cce_cluster_flavor_id" {
   description = "CCE cluster size. cce.s1.small (single, 50 nodes) / cce.s2.small (HA, 50 nodes) etc."
   type        = string

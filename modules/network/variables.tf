@@ -12,6 +12,12 @@ variable "vpc_cidr" {
   type        = string
 }
 
+variable "vpc_name" {
+  description = "Explicit VPC name. Defaults to \"<name_prefix>-vpc\". VPC names must be unique per HCS project — override this if the default name is already taken."
+  type        = string
+  default     = null
+}
+
 variable "public_subnet_cidrs" {
   description = "List of CIDR blocks for public subnets."
   type        = list(string)

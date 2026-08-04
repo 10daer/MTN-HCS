@@ -1,11 +1,35 @@
 ###############################################################################
-# Dev Environment — root module
-# Orchestrates: network → security → ecs (with discovered flavor/AZ/image)
+# Dev Environment — shared root
 #
-# Design note: like the known-good standalone config, this environment does
-# NOT hardcode environment-specific values (AZ, flavor, image). It discovers
-# them from the live HCS stack via data sources so the plan always references
-# things that actually exist on MTN Lagos.
+# This file holds ONLY what every service stack shares: naming, common tags,
+# and the discovery data sources that resolve environment-specific values
+# (AZ, flavor, image) from the live HCS stack at plan time.
+#
+# Each service is wired in its own file so it can be read and changed in
+# isolation, with its values in a matching *.auto.tfvars:
+#
+#   main-network.tf   → network.auto.tfvars    (VPC, subnets, NAT, default SG)
+#   main-security.tf  → security.auto.tfvars   (security groups + rules)
+#   main-eip.tf       → eip.auto.tfvars        (EIPs, shared bandwidth)
+#   main-ecs.tf       → ecs.auto.tfvars        (ECS instances, keypairs)
+#   main-cce.tf       → cce.auto.tfvars        (CCE cluster, node pools, ns)
+#   main-rds.tf       → rds.auto.tfvars        (RDS MySQL / PostgreSQL)
+#   main-gaussdb.tf   → gaussdb.auto.tfvars    (GaussDB openGauss)
+#   main-obs.tf       → obs.auto.tfvars        (OBS buckets, objects, policies)
+#   main-vdc.tf       → vdc.auto.tfvars        (VDC users, groups, roles)
+#
+# All of it is ONE Terraform root and ONE state file. Every *.auto.tfvars is
+# loaded automatically on every terraform command, so a plain
+# `terraform plan` / `terraform apply` always sees the complete picture —
+# there is no -var-file to remember and no way to half-configure the stack.
+#
+# Every stack except network is inert until its tfvars are filled in: the
+# map-driven modules (eip, rds, gaussdb, obs, vdc) create nothing from an
+# empty map, and cce is behind cce_enabled.
+#
+# Design note: this environment does NOT hardcode environment-specific values
+# (AZ, flavor, image). It discovers them from the live HCS stack via data
+# sources so the plan always references things that exist on MTN Lagos.
 ###############################################################################
 
 locals {
@@ -21,7 +45,6 @@ locals {
 
 # ─────────────────────────────────────────────
 # 0. Discovery — resolve environment-specific values at plan time
-#    (mirrors the standalone working config)
 # ─────────────────────────────────────────────
 
 # All availability zones in this project
@@ -37,91 +60,4 @@ data "hcs_ecs_compute_flavors" "web" {
 # The image, resolved by display name to its ID
 data "hcs_ims_images" "web" {
   name = var.image_name
-}
-
-# ─────────────────────────────────────────────
-# 1. Network
-# ─────────────────────────────────────────────
-module "network" {
-  source = "../../modules/network"
-
-  name_prefix          = local.name_prefix
-  vpc_cidr             = var.vpc_cidr
-  public_subnet_cidrs  = var.public_subnet_cidrs
-  private_subnet_cidrs = []
-  availability_zones   = data.hcs_availability_zones.available.names
-  dns_servers          = var.dns_servers
-  enable_nat_gateway   = false
-  eip_type             = var.eip_type
-}
-
-# ─────────────────────────────────────────────
-# 2. Security Groups
-# ─────────────────────────────────────────────
-module "security" {
-  source = "../../modules/security"
-
-  name_prefix = local.name_prefix
-
-  security_groups = {
-    server = {
-      description = "Single server — SSH from trusted CIDR only"
-      ingress_rules = [
-        {
-          protocol    = "tcp"
-          port_min    = 22
-          port_max    = 22
-          cidr        = var.trusted_ssh_cidr
-          description = "SSH from trusted network"
-        }
-      ]
-    }
-  }
-}
-
-# ─────────────────────────────────────────────
-# 3. ECS — Web Tier (with self-created EIP)
-# ─────────────────────────────────────────────
-module "web" {
-  source = "../../modules/ecs"
-
-  name_prefix                = "${local.name_prefix}-web"
-  default_image_name         = var.image_name
-  default_availability_zones = [data.hcs_availability_zones.available.names[0]]
-  default_security_group_ids = [
-    module.security.security_group_ids["server"],
-    module.network.default_security_group_id,
-  ]
-  # Use the imported SSH key when one is supplied; otherwise no keypair
-  # (matches the standalone config, which sets no login credential).
-  default_key_pair = var.server_ssh_public_key == "" ? null : "${local.name_prefix}-web-key"
-  tags             = local.common_tags
-
-  keypairs = var.server_ssh_public_key == "" ? {} : {
-    web = {
-      name       = "${local.name_prefix}-web-key"
-      public_key = var.server_ssh_public_key
-    }
-  }
-
-  instances = {
-    "web-01" = {
-      # Discovered values — never hardcoded (see design note above)
-      flavor_id         = data.hcs_ecs_compute_flavors.web.ids[0]
-      image_id          = data.hcs_ims_images.web.images[0].id
-      availability_zone = data.hcs_availability_zones.available.names[0]
-      subnet_id         = module.network.public_subnet_id_list[0]
-
-      system_disk_type = var.web_system_disk_type
-      system_disk_size = var.web_system_disk_size
-
-      # Create + associate a fresh EIP through the module, exactly like the
-      # standalone config's hcs_vpc_eip → hcs_ecs_compute_eip_associate pair.
-      assign_eip         = true
-      eip_type           = var.eip_type
-      eip_bandwidth_size = var.web_eip_bandwidth_size
-    }
-  }
-
-  depends_on = [module.network, module.security]
 }
