@@ -1,0 +1,62 @@
+###############################################################################
+# security.auto.tfvars — values for main-security.tf
+# Module: modules/security → security groups + ingress rules
+#
+# Each key becomes a group named "lagos-mtn-1_A_and_E-dev-<key>-sg" with an
+# allow-all IPv4 egress rule. Ingress rule fields:
+#
+#   protocol      "tcp" | "udp" | "icmp"
+#   port_min/max  port range (omit for icmp)
+#   cidr          source CIDR         ─┐ use one or the other,
+#   remote_sg_key another key in this map  ─┘ not both
+#   description   free text
+#
+# Rule addresses in state are "<key>-ingress-<index>", so INSERTING a rule in
+# the middle of a list renumbers and recreates the rules after it. Append
+# instead of inserting.
+###############################################################################
+
+# Reference value for the trusted admin source. Duplicated in the `server`
+# group below because tfvars cannot reference other variables.
+trusted_ssh_cidr = "105.113.63.19/32"
+
+security_groups = {
+  # This is the group this environment has always created — verbatim, so the
+  # plan does not change. State address: module.security...["server"]
+  server = {
+    description = "Single server — SSH from trusted CIDR only"
+    ingress_rules = [
+      {
+        protocol    = "tcp"
+        port_min    = 22
+        port_max    = 22
+        cidr        = "105.113.63.19/32"
+        description = "SSH from trusted network"
+      },
+    ]
+  }
+
+  # ── Add more groups as needed ───────────────────────────────────────────────
+  # web = {
+  #   description = "Public web tier"
+  #   ingress_rules = [
+  #     { protocol = "tcp", port_min = 80, port_max = 80, cidr = "0.0.0.0/0", description = "HTTP" },
+  #     { protocol = "tcp", port_min = 443, port_max = 443, cidr = "0.0.0.0/0", description = "HTTPS" },
+  #   ]
+  # }
+  #
+  # app = {
+  #   description = "App tier — reachable only from the web tier"
+  #   ingress_rules = [
+  #     { protocol = "tcp", port_min = 8080, port_max = 8080, remote_sg_key = "web", description = "From web tier" },
+  #   ]
+  # }
+  #
+  # db = {
+  #   description = "Database tier — reachable only from the app tier"
+  #   ingress_rules = [
+  #     { protocol = "tcp", port_min = 3306, port_max = 3306, remote_sg_key = "app", description = "MySQL from app tier" },
+  #     { protocol = "tcp", port_min = 5432, port_max = 5432, remote_sg_key = "app", description = "PostgreSQL from app tier" },
+  #   ]
+  # }
+}

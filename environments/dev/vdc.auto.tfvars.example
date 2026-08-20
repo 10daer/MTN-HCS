@@ -1,0 +1,106 @@
+###############################################################################
+# vdc.auto.tfvars — values for main-vdc.tf
+# Module: modules/vdc → users, groups, custom roles, projects, assignments
+#
+# This stack is gated on vdc_id: while it is "", main-vdc.tf creates nothing.
+# Get the VDC id from the HCS console (Tenant / VDC management).
+#
+# CONTAINS PASSWORDS — this file is gitignored (*.tfvars).
+###############################################################################
+
+# 1–36 chars: lowercase letters, digits, hyphens.
+vdc_id = ""
+
+# Tenant (domain) id — required only for tenant-scoped role assignments.
+domain_id = ""
+
+# ── Users ─────────────────────────────────────────────────────────────────────
+# name: 4–32 chars. auth_type: LOCAL_AUTH | SAML_AUTH | LDAP_AUTH | MACHINE_USER.
+# access_mode: default | console | programmatic (MACHINE_USER must be programmatic).
+# password is required for LOCAL_AUTH and MACHINE_USER.
+#
+# vdc_users = {
+#   ridwan = {
+#     name         = "ridwan.afolabi"
+#     display_name = "Ridwan Afolabi"
+#     password     = "ChangeMe#2026"
+#     auth_type    = "LOCAL_AUTH"
+#     access_mode  = "console"
+#     description  = "Platform engineer"
+#   }
+#
+#   ci = {
+#     name        = "dev-ci-runner"
+#     password    = "ChangeMe#2026"
+#     auth_type   = "MACHINE_USER"
+#     access_mode = "programmatic"
+#     description = "Terraform / CI automation"
+#   }
+# }
+
+# ── Groups ────────────────────────────────────────────────────────────────────
+# name: 1–64 chars, cannot start with a digit.
+# vdc_groups = {
+#   platform = { name = "dev-platform", description = "Dev platform engineers" }
+#   readonly = { name = "dev-readonly", description = "Read-only access to dev" }
+# }
+
+# ── Custom roles ──────────────────────────────────────────────────────────────
+# type: XA (regional) | AX (global). policy is a Version 1.1 JSON document.
+# vdc_roles = {
+#   ecs-operator = {
+#     name        = "dev-ecs-operator"
+#     description = "Start/stop dev ECS instances, no delete"
+#     type        = "XA"
+#     policy = jsonencode({
+#       Version = "1.1"
+#       Statement = [
+#         {
+#           Effect = "Allow"
+#           Action = ["ecs:cloudServers:start", "ecs:cloudServers:stop", "ecs:cloudServers:list"]
+#         },
+#       ]
+#     })
+#   }
+# }
+
+# ── Projects (resource spaces) ────────────────────────────────────────────────
+# name MUST start with "<region>_" — region_id is passed as var.region
+# ("lagos-mtn-1"), so names look like "lagos-mtn-1_<something>".
+# vdc_projects = {
+#   sandbox = {
+#     name         = "lagos-mtn-1_dev_sandbox"
+#     display_name = "Dev Sandbox"
+#     description  = "Scratch space for dev experiments"
+#   }
+# }
+
+# ── Group membership ──────────────────────────────────────────────────────────
+# Keys reference vdc_users / vdc_groups above, or "existing:<key>" for the
+# lookup maps at the bottom of this file.
+# vdc_group_memberships = {
+#   platform = {
+#     group_key = "platform"
+#     user_keys = ["ridwan", "ci"]
+#   }
+# }
+
+# ── Role assignments ──────────────────────────────────────────────────────────
+# Per assignment, set exactly ONE scope: domain_id (tenant-wide),
+# project_key / project_id, or enterprise_project_id. project_key = "all"
+# applies the role to every project.
+# vdc_group_role_assignments = {
+#   platform = {
+#     group_key = "platform"
+#     assignments = [
+#       { role_key = "ecs-operator", project_key = "sandbox" },
+#       { role_key = "existing:readonly", project_key = "all" },
+#     ]
+#   }
+# }
+
+# ── Look up existing identity objects ─────────────────────────────────────────
+# Referenced above as "existing:<key>".
+# vdc_existing_roles  = { readonly = { display_name = "Tenant Guest" } }
+# vdc_existing_groups = { admins   = { name = "IT-DEPT-admins" } }
+# vdc_existing_users  = { bright   = { name = "bright.oyeleke" } }

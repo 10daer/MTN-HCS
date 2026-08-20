@@ -1,0 +1,107 @@
+###############################################################################
+# rds.auto.tfvars — values for main-rds.tf
+# Module: modules/rds → MySQL / PostgreSQL instances, DBs, accounts, audit
+#
+# Everything defaults to {} — nothing is created until you uncomment an
+# instance. Network ids are per-instance, so paste them from
+# `terraform output network_ids` after the network stack applies.
+#
+# CONTAINS PASSWORDS — this file is gitignored (*.tfvars). Prefer
+# TF_VAR_-style injection or a secrets store for anything beyond dev.
+###############################################################################
+
+# ── Instances ─────────────────────────────────────────────────────────────────
+# Key = logical name, referenced as instance_key by everything below.
+#
+# availability_zone is a LIST: one AZ for single-node, two for HA (a ".ha"
+# flavor). The Lagos stack currently reports one AZ (az1.dc0), so HA needs a
+# second AZ to exist first.
+# volume_type: ULTRAHIGH | LOCALSSD | CLOUDSSD | ESSD
+# name must be 4–64 chars.
+#
+# rds_instances = {
+#   mysql = {
+#     name              = "lagos-mtn-1-dev-mysql"
+#     flavor            = "rds.mysql.n1.large.2"
+#     db_type           = "MySQL"
+#     db_version        = "8.0"
+#     db_password       = "ChangeMe#2026"
+#     volume_type       = "ULTRAHIGH"
+#     volume_size       = 40
+#     availability_zone = ["az1.dc0"]
+#
+#     # From `terraform output network_ids`
+#     vpc_id            = "5c1e...."
+#     subnet_id         = "9a3f...."
+#     security_group_id = "cba45dd4-5b52-4a8b-9032-aa8ec0a5bded"
+#
+#     backup_start_time = "02:00-03:00"
+#     backup_keep_days  = 7
+#     ssl_enable        = true
+#   }
+#
+#   pg = {
+#     name              = "lagos-mtn-1-dev-pg"
+#     flavor            = "rds.pg.n1.large.2"
+#     db_type           = "PostgreSQL"
+#     db_version        = "14"
+#     db_password       = "ChangeMe#2026"
+#     volume_type       = "ULTRAHIGH"
+#     volume_size       = 40
+#     availability_zone = ["az1.dc0"]
+#     vpc_id            = "5c1e...."
+#     subnet_id         = "9a3f...."
+#     security_group_id = "cba45dd4-5b52-4a8b-9032-aa8ec0a5bded"
+#   }
+# }
+
+# ── MySQL databases / accounts / grants ───────────────────────────────────────
+# rds_mysql_databases = {
+#   app = { instance_key = "mysql", name = "appdb", character_set = "utf8mb4" }
+# }
+#
+# rds_mysql_accounts = {
+#   app = { instance_key = "mysql", name = "appuser", password = "ChangeMe#2026", hosts = ["10.10.%"] }
+# }
+#
+# rds_mysql_privileges = {
+#   app-rw = {
+#     instance_key = "mysql"
+#     db_key       = "app"
+#     users        = [{ account_key = "app", readonly = false }]
+#   }
+# }
+
+# ── PostgreSQL databases / accounts / grants / plugins ────────────────────────
+# rds_pg_databases = {
+#   app = { instance_key = "pg", name = "appdb", owner = "rdsAdmin" }
+# }
+#
+# rds_pg_accounts = {
+#   app = { instance_key = "pg", name = "appuser", password = "ChangeMe#2026" }
+# }
+#
+# rds_pg_privileges = {
+#   app-rw = {
+#     instance_key = "pg"
+#     db_key       = "app"
+#     users        = [{ account_key = "app", schema_name = "public", readonly = false }]
+#   }
+# }
+#
+# rds_pg_plugins = {
+#   stats = { instance_key = "pg", db_key = "app", name = "pg_stat_statements" }
+# }
+
+# ── SQL audit ─────────────────────────────────────────────────────────────────
+# rds_sql_audits = {
+#   mysql = {
+#     instance_key = "mysql"
+#     keep_days    = 7
+#     audit_types  = ["INSERT", "UPDATE", "DELETE", "CREATE_USER", "DROP_USER"]
+#   }
+# }
+
+# rds_existing_instances must stay {} — the provider exposes no
+# hcs_rds_instance data source, and the module validates that it is empty.
+# Reference unmanaged instances by pasting their id as a string instead.

@@ -1,0 +1,84 @@
+###############################################################################
+# cce.auto.tfvars — values for main-cce.tf
+# Module: modules/cce → cluster, node pools, namespaces
+#
+# A CCE cluster is not map-driven, so this stack is gated: nothing is created
+# while cce_enabled = false.
+###############################################################################
+
+cce_enabled = false
+
+# ── Cluster ───────────────────────────────────────────────────────────────────
+# cce.s1.small  — single master, ≤50 nodes    (dev default)
+# cce.s1.medium — single master, ≤200 nodes
+# cce.s2.small  — HA masters, ≤50 nodes       (required for cce_cluster_multi_az)
+cce_cluster_flavor_id = "cce.s1.small"
+
+# overlay_l2 | vpc-router | eni
+cce_container_network_type = "overlay_l2"
+
+# Leave empty for the provider default. If set, these must NOT overlap
+# vpc_cidr (10.10.0.0/16) or each other.
+cce_container_network_cidr = ""
+cce_service_network_cidr   = ""
+
+# iptables | ipvs
+cce_kube_proxy_mode = "iptables"
+
+# Multi-AZ masters need an HA flavor (cce.s2.*) AND more than one AZ — the
+# Lagos stack currently reports a single AZ (az1.dc0), so keep this false.
+cce_cluster_multi_az = false
+
+# ── API server exposure ───────────────────────────────────────────────────────
+# An EIP *address* (not id) to expose the Kubernetes API publicly. Empty =
+# private-only, reachable from inside the VPC. Create the EIP in
+# eip.auto.tfvars first, then paste its address from `terraform output`.
+cce_cluster_eip = ""
+
+# ── Network placement ─────────────────────────────────────────────────────────
+# Unset = the network stack's VPC and first public subnet. The subnet must have
+# DNS servers configured (network.auto.tfvars sets dns_servers) or nodes fail
+# to register with the cluster.
+# cce_vpc_id    = "5c1e...."
+# cce_subnet_id = "9a3f...."
+
+# ── Node login ────────────────────────────────────────────────────────────────
+# Must be a keypair that ALREADY exists in HCS — the cce module does not import
+# one. Empty = fall back to key_pair_name from ecs.auto.tfvars.
+cce_key_pair_name = ""
+
+# ── Node pools ────────────────────────────────────────────────────────────────
+# Key = pool name suffix. flavor_id and availability_zone must exist on this
+# stack — check `terraform output discovered` for real AZ names.
+# cce_node_pools = {
+#   workers = {
+#     flavor_id          = "c6.xlarge.2"
+#     initial_node_count = 2
+#     availability_zone  = "az1.dc0"
+#
+#     root_volume_size = 50
+#     root_volume_type = "SATA"
+#     data_volumes = [
+#       { size = 100, volumetype = "SATA" },
+#     ]
+#
+#     # Autoscaling — min/max only apply when autoscaling_enabled = true
+#     autoscaling_enabled      = true
+#     min_node_count           = 1
+#     max_node_count           = 5
+#     scale_down_cooldown_time = 100
+#     priority                 = 1
+#
+#     runtime = "containerd"
+#     labels  = { role = "worker" }
+#     taints  = []
+#     tags    = {}
+#   }
+# }
+
+# ── Namespaces ────────────────────────────────────────────────────────────────
+# Key = namespace name.
+# cce_namespaces = {
+#   app        = { labels = { team = "backend" } }
+#   monitoring = {}
+# }

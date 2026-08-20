@@ -1,0 +1,107 @@
+###############################################################################
+# obs.auto.tfvars — values for main-obs.tf
+# Module: modules/obs → buckets, ACLs, objects, bucket policies
+#
+# Everything defaults to {} — nothing is created until you uncomment a bucket.
+#
+# Bucket names are globally unique per HCS deployment and must be DNS-compliant:
+# 3–63 chars, lowercase letters/digits/hyphens/dots, NO underscores. The
+# name_prefix ("lagos-mtn-1_A_and_E-dev") contains underscores, so always set
+# `bucket` explicitly rather than relying on the "{name_prefix}-{key}" default.
+###############################################################################
+
+# ── Buckets ───────────────────────────────────────────────────────────────────
+# acl:           private | public-read | public-read-write | log-delivery-write
+# storage_class: STANDARD | WARM | COLD
+# force_destroy: true deletes all objects when the bucket is destroyed —
+#                without it, `terraform destroy` fails on a non-empty bucket.
+#
+# obs_buckets = {
+#   app-data = {
+#     bucket        = "mtn-lagos-dev-app-data"
+#     acl           = "private"
+#     storage_class = "STANDARD"
+#     versioning    = true
+#     force_destroy = false
+#
+#     lifecycle_rules = [
+#       { name = "expire-tmp", enabled = true, prefix = "tmp/", expiration_days = 30 },
+#     ]
+#
+#     tags = { Purpose = "application-data" }
+#   }
+#
+#   logs = {
+#     bucket        = "mtn-lagos-dev-logs"
+#     acl           = "log-delivery-write"
+#     storage_class = "WARM"
+#     force_destroy = true
+#   }
+#
+#   static-site = {
+#     bucket = "mtn-lagos-dev-static"
+#     acl    = "public-read"
+#     website = {
+#       index_document = "index.html"
+#       error_document = "error.html"
+#     }
+#     cors_rules = [
+#       {
+#         allowed_origins = ["*"]
+#         allowed_methods = ["GET", "HEAD"]
+#         allowed_headers = ["*"]
+#         max_age_seconds = 3600
+#       },
+#     ]
+#   }
+# }
+
+# ── Objects ───────────────────────────────────────────────────────────────────
+# Exactly one of source (local file path) or content (inline string).
+# bucket_key references a key in obs_buckets, or "existing:<key>" from
+# obs_existing_buckets.
+#
+# obs_objects = {
+#   index = {
+#     bucket_key   = "static-site"
+#     key          = "index.html"
+#     content      = "<h1>MTN HCS dev</h1>"
+#     content_type = "text/html"
+#     acl          = "public-read"
+#   }
+# }
+
+# ── Bucket policies ───────────────────────────────────────────────────────────
+# policy is a JSON string; policy_format is "obs" (default) or "s3".
+#
+# obs_bucket_policies = {
+#   app-data-readonly = {
+#     bucket_key = "app-data"
+#     policy = jsonencode({
+#       Statement = [
+#         {
+#           Sid       = "AllowVpcRead"
+#           Effect    = "Allow"
+#           Principal = { ID = ["*"] }
+#           Action    = ["GetObject"]
+#           Resource  = ["mtn-lagos-dev-app-data/*"]
+#         },
+#       ]
+#     })
+#     policy_format = "obs"
+#   }
+# }
+
+# ── Fine-grained ACLs ─────────────────────────────────────────────────────────
+# Applying a bucket ACL REPLACES whatever ACL is on the bucket.
+# obs_bucket_acls = {
+#   app-data = {
+#     bucket_key       = "app-data"
+#     owner_permission = { access_to_bucket = ["READ", "WRITE"], access_to_acl = ["READ_ACP", "WRITE_ACP"] }
+#   }
+# }
+#
+# obs_object_acls = {}
+
+# ── Reference buckets created outside this module ─────────────────────────────
+# obs_existing_buckets = { legacy = { bucket = "mtn-lagos-legacy-bucket" } }

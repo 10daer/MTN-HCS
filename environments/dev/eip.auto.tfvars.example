@@ -1,0 +1,65 @@
+###############################################################################
+# eip.auto.tfvars — values for main-eip.tf
+# Module: modules/eip → EIPs, shared bandwidths, associations
+#
+# Everything here defaults to {} — this stack creates nothing until you
+# uncomment something. The web tier's own EIP comes from the ecs module, not
+# from here; use this for EIPs that must outlive an instance, or for several
+# EIPs sharing one bandwidth pool.
+#
+# ip_type must be the HCS publicip type for this stack: eip_public_Internet_01
+###############################################################################
+
+# ── Shared bandwidth pools (5–2000 Mbit/s) ────────────────────────────────────
+# eip_shared_bandwidths = {
+#   pool = {
+#     name = "lagos-mtn-1_A_and_E-dev-shared-bw"
+#     size = 50
+#   }
+# }
+
+# ── EIPs with their own dedicated bandwidth (1–300 Mbit/s) ────────────────────
+# eip_dedicated = {
+#   api = {
+#     bandwidth_size = 10
+#     ip_type        = "eip_public_Internet_01"
+#     name           = "lagos-mtn-1_A_and_E-dev-api-eip"
+#   }
+# }
+
+# ── EIPs that draw from a shared bandwidth pool ───────────────────────────────
+# bandwidth_key references a key in eip_shared_bandwidths (or
+# eip_external_bandwidth_ids for a pool created elsewhere).
+# eip_shared = {
+#   worker-1 = {
+#     bandwidth_key = "pool"
+#     ip_type       = "eip_public_Internet_01"
+#   }
+#   worker-2 = {
+#     bandwidth_key = "pool"
+#     ip_type       = "eip_public_Internet_01"
+#   }
+# }
+
+# ── Move an existing dedicated EIP into a shared pool ─────────────────────────
+# eip_bandwidth_associations = {
+#   api-to-pool = {
+#     bandwidth_key           = "pool"
+#     eip_key                 = "api"
+#     fallback_bandwidth_size = 5
+#   }
+# }
+
+# ── Bind an EIP to a port or a private IP ─────────────────────────────────────
+# Provide either port_id, or both fixed_ip and network_id (the subnet id).
+# eip_associations = {
+#   api-to-server = {
+#     eip_key = "api"
+#     port_id = "6b0f...."
+#   }
+# }
+
+# ── Reference bandwidths / EIPs created outside this module ───────────────────
+# eip_external_bandwidth_ids = { legacy_pool = "b1c2...." }
+# eip_external_eip_ids       = { legacy_eip  = "e3f4...." }
+# eip_external_eip_addresses = { legacy_eip  = "102.88.137.235" }

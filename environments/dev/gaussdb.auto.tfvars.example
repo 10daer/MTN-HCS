@@ -1,0 +1,67 @@
+###############################################################################
+# gaussdb.auto.tfvars — values for main-gaussdb.tf
+# Module: modules/gaussdb → openGauss instances + parameter templates
+#
+# Everything defaults to {} — nothing is created until you uncomment an
+# instance.
+#
+# CONTAINS PASSWORDS — this file is gitignored (*.tfvars).
+###############################################################################
+
+# ── Instances ─────────────────────────────────────────────────────────────────
+# password: 8–32 chars, at least 3 character types, plus a special from ~!@#%^*-_=+?
+# ha_mode:     centralization_standard (primary/standby) | combined (distributed)
+# volume_type: ULTRAHIGH | LOCALSSD | DORADO
+# name:        4–64 chars, must start with a letter
+#
+# AZ handling: leave availability_zone unset and the module auto-selects
+# az_count AZs (default 3). The Lagos stack reports a single AZ, so set the AZ
+# explicitly and az_count = 1 — otherwise creation fails asking for 3 AZs.
+#
+# gaussdb_instances = {
+#   main = {
+#     name        = "lagos-dev-opengauss"
+#     flavor      = "gaussdb.opengauss.ee.dn.m6.2xlarge.8.in"
+#     password    = "ChangeMe#2026"
+#     ha_mode     = "centralization_standard"
+#     volume_type = "ULTRAHIGH"
+#     volume_size = 40
+#
+#     # From `terraform output network_ids`
+#     vpc_id            = "5c1e...."
+#     subnet_id         = "9a3f...."
+#     security_group_id = "cba45dd4-5b52-4a8b-9032-aa8ec0a5bded"
+#
+#     availability_zone = "az1.dc0"
+#     az_count          = 1
+#     replica_num       = 2
+#
+#     port              = "8000"
+#     backup_start_time = "02:00-03:00"
+#     backup_keep_days  = 7
+#
+#     # Reference a template defined below by its key
+#     # configuration_key = "tuned"
+#   }
+# }
+
+# ── Parameter templates ───────────────────────────────────────────────────────
+# Either (engine_version + instance_mode) for a new template, OR
+# source_configuration_id to copy an existing one — never both.
+#
+# gaussdb_parameter_templates = {
+#   tuned = {
+#     name           = "lagos-dev-opengauss-tuned"
+#     description     = "Dev tuning for openGauss"
+#     engine_version = "8.202"
+#     instance_mode  = "ha"
+#     parameters = [
+#       { name = "max_connections", value = "500" },
+#     ]
+#   }
+# }
+
+# ── Look up existing GaussDB resources ────────────────────────────────────────
+# Referenced from instances as configuration_key = "existing:<key>".
+# gaussdb_existing_instances           = { legacy = { name = "old-opengauss" } }
+# gaussdb_existing_parameter_templates = { base   = { template_id = "8f2c...." } }

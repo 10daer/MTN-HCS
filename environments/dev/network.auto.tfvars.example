@@ -1,0 +1,38 @@
+###############################################################################
+# network.auto.tfvars — values for main-network.tf
+# Module: modules/network → VPC, subnets, NAT gateway, baseline security group
+###############################################################################
+
+# ── VPC ───────────────────────────────────────────────────────────────────────
+vpc_cidr = "10.10.0.0/16"
+
+# VPC (router) names must be unique per HCS project. Leave unset for the
+# default "lagos-mtn-1_A_and_E-dev-vpc"; set it to sidestep or replace a name
+# that is already taken by a VPC this state does not manage.
+# vpc_name = "lagos-mtn-1_A_and_E-dev-vpc"
+
+# ── Subnets ───────────────────────────────────────────────────────────────────
+# One public subnet is enough for the current single-server web tier.
+public_subnet_cidrs = ["10.10.1.0/24"]
+
+# Empty = no private subnets. main.tf used to hardcode [] here regardless of
+# this value; it is now honoured, so adding CIDRs really does create subnets.
+# Each CIDR must be unique and inside vpc_cidr.
+private_subnet_cidrs = []
+
+# ── DNS ───────────────────────────────────────────────────────────────────────
+dns_servers = ["100.125.4.25"]
+
+# ── NAT gateway ───────────────────────────────────────────────────────────────
+# Was hardcoded false in main.tf; now driven from here. Turning it on creates a
+# NAT gateway + EIP and SNAT rules for every private subnet — so it only does
+# something useful once private_subnet_cidrs is non-empty.
+enable_nat_gateway = false
+
+# ── EIP ───────────────────────────────────────────────────────────────────────
+# Also used by the web tier's EIP in main-ecs.tf. This is an HCS-specific
+# publicip type, not the public-cloud "5_bgp".
+eip_type = "eip_public_Internet_01"
+
+# availability_zones is intentionally NOT set: main.tf discovers AZs from
+# data.hcs_availability_zones.available, so a hardcoded list here is ignored.

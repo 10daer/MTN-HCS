@@ -1,0 +1,35 @@
+###############################################################################
+# ecs.auto.tfvars — values for main-ecs.tf
+# Module: modules/ecs → web tier instance, keypair, EIP
+###############################################################################
+
+# ── Image & keypair ───────────────────────────────────────────────────────────
+# image_name is resolved to an image ID by data.hcs_ims_images.web in main.tf.
+image_name = "Ubuntu22.04"
+
+# Imported as keypair "lagos-mtn-1_A_and_E-dev-web-key" and injected into the
+# instance. Set to "" to build the instance with no keypair at all.
+server_ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDdhYgKBWvpzQ..."
+
+# Pre-existing HCS keypair name. Not used by the web tier (which imports the
+# key above); main-cce.tf falls back to it for node login.
+key_pair_name = "my-key-pair"
+
+# ── Web tier flavor (discovered, not hardcoded) ───────────────────────────────
+# data.hcs_ecs_compute_flavors.web looks up a flavor with this vCPU/RAM in the
+# first AZ. A hardcoded public-cloud id like "c6.large.2" does not exist here.
+web_flavor_cpu    = 2
+web_flavor_memory = 4
+
+# ── Web tier disks & EIP ──────────────────────────────────────────────────────
+web_system_disk_type   = "SATA"
+web_system_disk_size   = 50
+web_eip_bandwidth_size = 10
+
+# ── Explicit network ids (optional) ───────────────────────────────────────────
+# Unset = use the network stack's first public subnet, plus module.security's
+# "server" group and the network default SG. Set these to land the instance on
+# infrastructure this state does not manage — get ids from
+# `terraform output network_ids`.
+# ecs_web_subnet_id          = "9a3f...."
+# ecs_web_security_group_ids = ["9f10b6ba-0c8a-4496-871a-0398dc30c609", "cba45dd4-5b52-4a8b-9032-aa8ec0a5bded"]
