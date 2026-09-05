@@ -403,6 +403,16 @@ variable "cce_key_pair_name" {
   default     = ""
 }
 
+variable "cce_cluster_name" {
+  description = <<-EOT
+    Explicit CCE cluster name. Empty = derive it from name_prefix, lowercased
+    with illegal characters replaced by hyphens (CCE allows only lowercase
+    letters, digits and hyphens). Set this only to override that.
+  EOT
+  type        = string
+  default     = ""
+}
+
 variable "cce_cluster_flavor_id" {
   description = "CCE cluster size. cce.s1.small (single, 50 nodes) / cce.s2.small (HA, 50 nodes) etc."
   type        = string

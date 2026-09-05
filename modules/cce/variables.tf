@@ -5,6 +5,21 @@
 # ─────────────────────────────────────────────
 # Naming
 # ─────────────────────────────────────────────
+variable "cluster_name" {
+  description = <<-EOT
+    Explicit cluster name. Leave null to derive one from name_prefix.
+
+    CCE names are stricter than most HCS resources: lowercase letters, digits
+    and hyphens only, starting with a letter and ending with a letter or digit.
+    A name_prefix containing underscores or uppercase (e.g.
+    "lagos-mtn-1_A_and_E-dev") is rejected with CCE_CM.0004 "Request is
+    invalid", so the derived default lowercases the prefix and replaces every
+    illegal character with a hyphen. Set this to take full control instead.
+  EOT
+  type        = string
+  default     = null
+}
+
 variable "name_prefix" {
   description = "Prefix for all CCE resource names (e.g. myapp-dev)"
   type        = string

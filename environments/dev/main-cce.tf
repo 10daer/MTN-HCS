@@ -18,6 +18,9 @@ module "cce" {
   name_prefix = local.name_prefix
 
   # Cluster
+  # Name is derived from name_prefix and sanitised for CCE's stricter rules
+  # (lowercase/digits/hyphens only) unless cce_cluster_name overrides it.
+  cluster_name           = var.cce_cluster_name != "" ? var.cce_cluster_name : null
   cluster_flavor_id      = var.cce_cluster_flavor_id
   vpc_id                 = var.cce_vpc_id != "" ? var.cce_vpc_id : module.network.vpc_id
   subnet_id              = var.cce_subnet_id != "" ? var.cce_subnet_id : module.network.public_subnet_id_list[0]

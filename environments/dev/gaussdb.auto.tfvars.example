@@ -9,6 +9,11 @@
 ###############################################################################
 
 # ── Instances ─────────────────────────────────────────────────────────────────
+#
+# STALE IDS: these are looked up once and pasted in. If the network stack is
+# ever destroyed and rebuilt, every id below changes and the next apply fails
+# with a "not found" error (RDS reports DBS.200503 "VPC ID not found").
+# Re-read them after ANY rebuild:  terraform output network_ids
 # password: 8–32 chars, at least 3 character types, plus a special from ~!@#%^*-_=+?
 # ha_mode:     centralization_standard (primary/standby) | combined (distributed)
 # volume_type: ULTRAHIGH | LOCALSSD | DORADO

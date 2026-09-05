@@ -21,6 +21,12 @@ cce_enabled = false
 # cce.s1.small  — single master, ≤50 nodes    (dev default)
 # cce.s1.medium — single master, ≤200 nodes
 # cce.s2.small  — HA masters, ≤50 nodes       (required for cce_cluster_multi_az)
+# Cluster name. Empty = derived from name_prefix, lowercased with illegal
+# characters replaced by hyphens — CCE allows ONLY lowercase letters, digits
+# and hyphens, starting with a letter. A prefix like "lagos-mtn-1_A_and_E-dev"
+# becomes "lagos-mtn-1-a-and-e-dev-cluster". Set this to override.
+cce_cluster_name = ""
+
 cce_cluster_flavor_id = "cce.s1.small"
 
 # overlay_l2 | vpc-router | eni
@@ -45,6 +51,11 @@ cce_cluster_multi_az = false
 cce_cluster_eip = ""
 
 # ── Network placement ─────────────────────────────────────────────────────────
+#
+# STALE IDS: these are looked up once and pasted in. If the network stack is
+# ever destroyed and rebuilt, every id below changes and the next apply fails
+# with a "not found" error (RDS reports DBS.200503 "VPC ID not found").
+# Re-read them after ANY rebuild:  terraform output network_ids
 # Unset = the network stack's VPC and first public subnet. The subnet must have
 # DNS servers configured (network.auto.tfvars sets dns_servers) or nodes fail
 # to register with the cluster.

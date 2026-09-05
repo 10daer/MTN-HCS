@@ -11,8 +11,16 @@
 # ─────────────────────────────────────────────
 # CCE Cluster
 # ─────────────────────────────────────────────
+locals {
+  # CCE allows only lowercase letters, digits and hyphens, must start with a
+  # letter and end with a letter or digit. name_prefix routinely contains
+  # underscores and uppercase, so sanitise rather than fail at apply time.
+  derived_cluster_name = "${trim(lower(replace(var.name_prefix, "/[^a-zA-Z0-9-]/", "-")), "-")}-cluster"
+  cluster_name         = var.cluster_name != null ? var.cluster_name : local.derived_cluster_name
+}
+
 resource "hcs_cce_cluster" "this" {
-  name                   = "${var.name_prefix}-cluster"
+  name                   = local.cluster_name
   flavor_id              = var.cluster_flavor_id
   vpc_id                 = var.vpc_id
   subnet_id              = var.subnet_id

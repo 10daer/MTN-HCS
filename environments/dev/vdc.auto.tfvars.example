@@ -52,15 +52,11 @@ domain_id = ""
 #     name        = "dev-ecs-operator"
 #     description = "Start/stop dev ECS instances, no delete"
 #     type        = "XA"
-#     policy = jsonencode({
-#       Version = "1.1"
-#       Statement = [
-#         {
-#           Effect = "Allow"
-#           Action = ["ecs:cloudServers:start", "ecs:cloudServers:stop", "ecs:cloudServers:list"]
-#         },
-#       ]
-#     })
+#     # Heredoc, NOT jsonencode() — .tfvars files may not call functions
+#     # ("Error: Function calls not allowed"). Inline the JSON as a string.
+#     policy = <<-EOT
+#       { ... policy JSON on one line ... }
+#     EOT
 #   }
 # }
 
