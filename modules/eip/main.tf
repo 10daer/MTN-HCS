@@ -41,8 +41,13 @@ resource "hcs_vpc_eip" "dedicated" {
 
   bandwidth {
     share_type = "PER"
-    name       = try(each.value.bandwidth_name, "${var.name_prefix}-${each.key}-bw")
-    size       = each.value.bandwidth_size
+    # bandwidth_name is optional(string) with no default, so it is NULL — not
+    # absent — when omitted. try() only catches errors, never null, so the
+    # documented fallback never applied and the provider rejected the resource
+    # with: "bandwidth.0.id": one of `bandwidth.0.id,bandwidth.0.name` must be
+    # specified. Test for null explicitly.
+    name = each.value.bandwidth_name != null ? each.value.bandwidth_name : "${var.name_prefix}-${each.key}-bw"
+    size = each.value.bandwidth_size
   }
 
   name                  = try(each.value.name, null)
