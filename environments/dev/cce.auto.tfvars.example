@@ -111,3 +111,48 @@ cce_key_pair_name = ""
 #   app        = { labels = { team = "backend" } }
 #   monitoring = {}
 # }
+
+###############################################################################
+# STAGE 2 — node pool and namespaces.
+#
+# Apply AFTER the cluster exists. Node pools are ECS instances drawn from the
+# same host pool that rejected RDS with "DBS.202309 The ECS compute resources
+# are insufficient" / "Failed to create the ECS" — so this is the real capacity
+# test. Keeping it a separate apply means a capacity failure does not cost you
+# the cluster (5+ minutes to rebuild).
+#
+# flavor_id     — verify in HCS Console -> ECS -> Create. A standalone ECS
+#                 instance placed fine in az0.dc0, so start from that flavor.
+# root_volume_type / volumetype — SATA is confirmed available on this stack;
+#                 SSD may not be. Check the console before assuming.
+# autoscaling   — off. Scaling is meaningless until one node can be placed.
+# keypair       — must ALREADY exist in HCS; this module does not import one.
+#                 Empty cce_key_pair_name falls back to ecs.auto.tfvars.
+#
+# cce_node_pools = {
+#   workers = {
+#     flavor_id          = "REPLACE_WITH_VERIFIED_ECS_FLAVOR"
+#     initial_node_count = 1
+#     availability_zone  = "az0.dc0"
+#
+#     root_volume_size = 50
+#     root_volume_type = "SATA"
+#     data_volumes = [
+#       { size = 100, volumetype = "SATA" },
+#     ]
+#
+#     autoscaling_enabled = false
+#     runtime             = "containerd"
+#     labels              = { role = "worker" }
+#     taints              = []
+#     tags                = {}
+#   }
+# }
+#
+# Namespaces need a reachable Kubernetes API, so they only work once at least
+# one node is Ready — a cluster with zero nodes will fail these.
+#
+# cce_namespaces = {
+#   app = { labels = { team = "backend" } }
+# }
+###############################################################################

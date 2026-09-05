@@ -628,12 +628,12 @@ variable "gaussdb_instances" {
     name                    = string
     flavor                  = string
     password                = string
-    vpc_id                  = string
-    subnet_id               = string
+    vpc_id                  = optional(string, "")
+    subnet_id               = optional(string, "")
     ha_mode                 = string
     volume_type             = string
     volume_size             = number
-    security_group_id       = optional(string)
+    security_group_id       = optional(string, "")
     availability_zone       = optional(string)
     az_count                = optional(number, 3)
     solution                = optional(string)

@@ -10,10 +10,16 @@
 
 # ── Instances ─────────────────────────────────────────────────────────────────
 #
-# STALE IDS: these are looked up once and pasted in. If the network stack is
-# ever destroyed and rebuilt, every id below changes and the next apply fails
-# with a "not found" error (RDS reports DBS.200503 "VPC ID not found").
-# Re-read them after ANY rebuild:  terraform output network_ids
+# NETWORK IDS: OMIT THEM. Leave vpc_id / subnet_id / security_group_id out (or
+# set them to "") and this stack uses the network stack's VPC, first public
+# subnet and default SG automatically. That is what lets one `terraform plan`
+# build everything in the right order — the reference creates a dependency
+# edge, so Terraform waits for the VPC instead of racing it.
+#
+# Only set them explicitly to pin an instance to a subnet or SG this state does
+# not manage. A pasted id goes stale the moment the network is rebuilt, and the
+# apply then fails with DBS.200503 "VPC ID not found" — with no dependency edge
+# to order it correctly either.
 # password: 8–32 chars, at least 3 character types, plus a special from ~!@#%^*-_=+?
 # ha_mode:     centralization_standard (primary/standby) | combined (distributed)
 # volume_type: ULTRAHIGH | LOCALSSD | DORADO
@@ -47,10 +53,9 @@
 #     volume_type = "ULTRAHIGH"
 #     volume_size = 40
 #
-#     # From `terraform output network_ids`
-#     vpc_id            = "5c1e...."
-#     subnet_id         = "9a3f...."
-#     security_group_id = "3973...."
+#     # Omit these three to inherit from the network stack.
+#     # vpc_id / subnet_id / security_group_id omitted on purpose — they are
+#     # inherited from the network stack. Set them only to pin elsewhere.
 #
 #     availability_zone = "az0.dc0"
 #     az_count          = 1

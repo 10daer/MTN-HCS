@@ -13,10 +13,16 @@
 # ── Instances ─────────────────────────────────────────────────────────────────
 # Key = logical name, referenced as instance_key by everything below.
 #
-# STALE IDS: these are looked up once and pasted in. If the network stack is
-# ever destroyed and rebuilt, every id below changes and the next apply fails
-# with a "not found" error (RDS reports DBS.200503 "VPC ID not found").
-# Re-read them after ANY rebuild:  terraform output network_ids
+# NETWORK IDS: OMIT THEM. Leave vpc_id / subnet_id / security_group_id out (or
+# set them to "") and this stack uses the network stack's VPC, first public
+# subnet and default SG automatically. That is what lets one `terraform plan`
+# build everything in the right order — the reference creates a dependency
+# edge, so Terraform waits for the VPC instead of racing it.
+#
+# Only set them explicitly to pin an instance to a subnet or SG this state does
+# not manage. A pasted id goes stale the moment the network is rebuilt, and the
+# apply then fails with DBS.200503 "VPC ID not found" — with no dependency edge
+# to order it correctly either.
 #
 # availability_zone is a LIST: one AZ for single-node, two for HA (a ".ha"
 # flavor) — note this differs from gaussdb, which takes a comma-separated
@@ -50,10 +56,9 @@
 #     volume_size       = 40
 #     availability_zone = ["az0.dc0"]
 #
-#     # From `terraform output network_ids`
-#     vpc_id            = "5c1e...."
-#     subnet_id         = "9a3f...."
-#     security_group_id = "3973...."
+#     # Omit these three to inherit from the network stack.
+#     # vpc_id / subnet_id / security_group_id omitted on purpose — they are
+#     # inherited from the network stack. Set them only to pin elsewhere.
 #
 #     backup_start_time = "02:00-03:00"
 #     backup_keep_days  = 7
@@ -69,9 +74,8 @@
 #     volume_type       = "ULTRAHIGH"
 #     volume_size       = 40
 #     availability_zone = ["az0.dc0"]
-#     vpc_id            = "5c1e...."
-#     subnet_id         = "9a3f...."
-#     security_group_id = "3973...."
+#     # vpc_id / subnet_id / security_group_id omitted on purpose — they are
+#     # inherited from the network stack. Set them only to pin elsewhere.
 #   }
 # }
 
@@ -125,3 +129,45 @@
 # rds_existing_instances must stay {} — the provider exposes no
 # hcs_rds_instance data source, and the module validates that it is empty.
 # Reference unmanaged instances by pasting their id as a string instead.
+
+###############################################################################
+# STAGE 2 — databases, accounts and grants.
+#
+# Apply these AFTER the instance is up and in state. They reference it by
+# instance_key, so a single apply that creates both usually works, but keeping
+# them separate makes a failure unambiguous: instance, or account wiring.
+#
+# This is the part that exercises the module's cross-references
+# (instance_key -> db_key -> account_key), which is where map-driven modules
+# normally break.
+#
+# hosts uses MySQL wildcard syntax, not CIDR: "10.10.%" means the VPC range.
+# "%" means anywhere — avoid it outside a throwaway test.
+#
+# rds_mysql_databases = {
+#   app = {
+#     instance_key  = "mysql"   # key from rds_instances above
+#     name          = "appdb"
+#     character_set = "utf8mb4"
+#   }
+# }
+#
+# rds_mysql_accounts = {
+#   app = {
+#     instance_key = "mysql"
+#     name         = "appuser"
+#     password     = "CHANGE_ME#2026"  # 8-32 chars, 3+ character types
+#     hosts        = ["10.10.%"]
+#   }
+# }
+#
+# rds_mysql_privileges = {
+#   app-rw = {
+#     instance_key = "mysql"
+#     db_key       = "app"      # key from rds_mysql_databases
+#     users = [
+#       { account_key = "app", readonly = false },  # key from rds_mysql_accounts
+#     ]
+#   }
+# }
+###############################################################################

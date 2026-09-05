@@ -13,10 +13,21 @@
 module "gaussdb" {
   source = "../../modules/gaussdb"
 
-  instances           = var.gaussdb_instances
+  # Network ids fall back to the network stack when left empty in tfvars — the
+  # reference to module.network creates the dependency edge that keeps a single
+  # `terraform plan` correctly ordered. An explicit value in tfvars always wins.
+  instances = {
+    for k, v in var.gaussdb_instances : k => merge(v, {
+      vpc_id            = v.vpc_id != "" ? v.vpc_id : module.network.vpc_id
+      subnet_id         = v.subnet_id != "" ? v.subnet_id : module.network.public_subnet_id_list[0]
+      security_group_id = try(v.security_group_id, "") != "" ? v.security_group_id : module.network.default_security_group_id
+    })
+  }
   parameter_templates = var.gaussdb_parameter_templates
 
   # Data-source lookups for pre-existing GaussDB resources
   existing_instances           = var.gaussdb_existing_instances
   existing_parameter_templates = var.gaussdb_existing_parameter_templates
+
+  depends_on = [module.network]
 }

@@ -63,3 +63,47 @@
 # eip_external_bandwidth_ids = { legacy_pool = "b1c2...." }
 # eip_external_eip_ids       = { legacy_eip  = "e3f4...." }
 # eip_external_eip_addresses = { legacy_eip  = "102.88.137.235" }
+
+###############################################################################
+# READY-TO-RUN SMOKE TEST — uncomment to exercise the eip module.
+#
+# NOTE: the web tier's EIP comes from the ecs module (assign_eip = true in
+# main-ecs.tf), NOT from here. Creating an ECS instance does NOT test this
+# stack — these are separate resource types.
+#
+# No compute involved, so this is unaffected by the ECS host-pool capacity
+# limits that block RDS / GaussDB / CCE node pools. It does consume public IP
+# and bandwidth quota.
+#
+# Covers a shared bandwidth pool, a dedicated EIP, a pooled EIP, and moving the
+# dedicated one into the pool. eip_associations is omitted because it needs a
+# live port or private IP — add it once an ECS instance exists.
+#
+# eip_shared_bandwidths = {
+#   pool = {
+#     name = "smoke-shared-bw"
+#     size = 5 # Mbit/s — 5 is the minimum for a shared pool
+#   }
+# }
+#
+# eip_dedicated = {
+#   standalone = {
+#     bandwidth_size = 5
+#     ip_type        = "eip_public_Internet_01" # must match your HCS external network
+#   }
+# }
+#
+# eip_shared = {
+#   pooled = {
+#     bandwidth_key = "pool" # key from eip_shared_bandwidths above
+#     ip_type       = "eip_public_Internet_01"
+#   }
+# }
+#
+# eip_bandwidth_associations = {
+#   move-standalone = {
+#     bandwidth_key = "pool"
+#     eip_key       = "standalone"
+#   }
+# }
+###############################################################################
