@@ -73,17 +73,18 @@ resource "hcs_obs_bucket" "this" {
   # Logging — target_bucket_key references either another bucket in var.buckets
   # or an existing bucket via the "existing:<key>" prefix.
   #
-  # NOTE: we intentionally read from data.hcs_obs_buckets.existing directly
-  # rather than through local.resolved_bucket_ids — the local depends on
-  # hcs_obs_bucket.this, so referencing it here would create a graph cycle
-  # even when no bucket actually configures logging.
+  # NOTE: neither branch may reference hcs_obs_bucket.this — a resource may not
+  # refer to itself, and Terraform rejects that statically even when no bucket
+  # configures logging. So we read the data source directly for "existing:"
+  # keys, and local.bucket_names (derived from var.buckets alone) for managed
+  # ones. For OBS a bucket's id is its name, so this is an exact equivalent.
   dynamic "logging" {
     for_each = lookup(each.value, "logging", null) != null ? [each.value.logging] : []
     content {
       target_bucket = (
         startswith(logging.value.target_bucket_key, "existing:")
         ? data.hcs_obs_buckets.existing[trimprefix(logging.value.target_bucket_key, "existing:")].buckets[0].bucket
-        : hcs_obs_bucket.this[logging.value.target_bucket_key].id
+        : local.bucket_names[logging.value.target_bucket_key]
       )
       target_prefix = lookup(logging.value, "target_prefix", "log/")
     }
