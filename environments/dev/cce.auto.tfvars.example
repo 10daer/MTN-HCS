@@ -6,6 +6,15 @@
 # while cce_enabled = false.
 ###############################################################################
 
+# NOTE: `-target=module.cce` does NOT isolate this stack. CCE reads vpc_id and
+# subnet_id from module.network, so Terraform pulls the network stack into the
+# plan. If your state is missing those resources it will try to CREATE them —
+# which fails with "VPC.0115 The router name has exist" when the VPC already
+# exists under another state file. Confirm `terraform state list` shows the
+# network resources before targeting CCE.
+#
+# Leave this false so a stray plan cannot build a cluster. A CCE cluster is the
+# most expensive resource in this environment — destroy it after testing.
 cce_enabled = false
 
 # ── Cluster ───────────────────────────────────────────────────────────────────
@@ -25,8 +34,8 @@ cce_service_network_cidr   = ""
 # iptables | ipvs
 cce_kube_proxy_mode = "iptables"
 
-# Multi-AZ masters need an HA flavor (cce.s2.*) AND more than one AZ — the
-# Lagos stack currently reports a single AZ (az1.dc0), so keep this false.
+# Multi-AZ masters need an HA flavor (cce.s2.*) AND more than one usable AZ —
+# on the Lagos stack only az0.dc0 carries a usable subnet, so keep this false.
 cce_cluster_multi_az = false
 
 # ── API server exposure ───────────────────────────────────────────────────────
@@ -49,12 +58,21 @@ cce_key_pair_name = ""
 
 # ── Node pools ────────────────────────────────────────────────────────────────
 # Key = pool name suffix. flavor_id and availability_zone must exist on this
-# stack — check `terraform output discovered` for real AZ names.
+# stack — check `terraform output discovered` for real AZ names. On lagos-mtn-1
+# that is az0.dc0 (bms.az2 is bare-metal and carries no usable subnet).
+#
+# Node pools are ECS instances, so they are subject to the same host-pool
+# capacity limits as RDS ("DBS.202309 The ECS compute resources are
+# insufficient"). Create the cluster with cce_node_pools = {} FIRST — that
+# separates "does CCE work" from "is there compute capacity" and avoids
+# rebuilding a cluster to retry a node pool.
+#
+# The keypair must ALREADY exist in HCS; this module does not import one.
 # cce_node_pools = {
 #   workers = {
 #     flavor_id          = "c6.xlarge.2"
-#     initial_node_count = 2
-#     availability_zone  = "az1.dc0"
+#     initial_node_count = 1
+#     availability_zone  = "az0.dc0"
 #
 #     root_volume_size = 50
 #     root_volume_type = "SATA"

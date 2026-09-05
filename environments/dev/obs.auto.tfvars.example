@@ -8,6 +8,20 @@
 # 3–63 chars, lowercase letters/digits/hyphens/dots, NO underscores. The
 # name_prefix ("lagos-mtn-1_A_and_E-dev") contains underscores, so always set
 # `bucket` explicitly rather than relying on the "{name_prefix}-{key}" default.
+#
+# DNS — read this before the first apply. OBS uses virtual-hosted-style
+# addressing: the provider calls https://<bucket>.<obs-endpoint>/. That
+# hostname has to resolve. On a deployment where the OBS endpoint resolves only
+# through /etc/hosts there is no wildcard syntax, so EVERY bucket needs its own
+# line, e.g.
+#   10.184.92.97 my-bucket.obsv3.lagos-mtn-1.mtn.com
+# The durable fix is a "*.obsv3.<region>.<domain>" A record from the DNS team.
+# Symptom if missing: "no such host", or a create that hangs for many minutes
+# (a bucket PUT normally returns in about a second).
+#
+# NO FUNCTION CALLS IN THIS FILE. .tfvars accepts literals only — jsonencode(),
+# file(), templatefile() all fail with "Error: Function calls not allowed".
+# Use a heredoc for JSON (see obs_bucket_policies below).
 ###############################################################################
 
 # ── Buckets ───────────────────────────────────────────────────────────────────
@@ -15,6 +29,7 @@
 # storage_class: STANDARD | WARM | COLD
 # force_destroy: true deletes all objects when the bucket is destroyed —
 #                without it, `terraform destroy` fails on a non-empty bucket.
+#                Set it on any throwaway/test bucket.
 #
 # obs_buckets = {
 #   app-data = {
@@ -77,17 +92,10 @@
 # obs_bucket_policies = {
 #   app-data-readonly = {
 #     bucket_key = "app-data"
-#     policy = jsonencode({
-#       Statement = [
-#         {
-#           Sid       = "AllowVpcRead"
-#           Effect    = "Allow"
-#           Principal = { ID = ["*"] }
-#           Action    = ["GetObject"]
-#           Resource  = ["mtn-lagos-dev-app-data/*"]
-#         },
-#       ]
-#     })
+#     # Heredoc, NOT jsonencode() — .tfvars may not call functions.
+#     policy = <<-EOT
+#       {"Statement":[{"Sid":"AllowVpcRead","Effect":"Allow","Principal":{"ID":["*"]},"Action":["GetObject"],"Resource":["mtn-lagos-dev-app-data/*"]}]}
+#     EOT
 #     policy_format = "obs"
 #   }
 # }

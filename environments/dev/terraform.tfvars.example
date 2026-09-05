@@ -20,14 +20,35 @@ skip_tls_verify = true
 # ── Service Endpoint Overrides ───────────────────────────────────────────────
 # These override per-service URLs. The IAM line here is for service-level
 # IAM calls — it does NOT replace hcs_auth_url above; the provider needs both.
+# Every service a module in this environment calls needs an entry here. A
+# missing endpoint does not fail at plan time — it fails mid-apply, which on a
+# slow resource can mean waiting an hour to find out.
+#
+# Verify each host resolves BEFORE the first apply that uses it:
+#   nslookup rds.<region>.<your-domain>
+#
+# Some HCS deployments publish a service under a versioned name (OBS has been
+# seen as "obsv3.<region>.<your-domain>"), and some resolve only through
+# /etc/hosts rather than DNS. Check the hosts file if nslookup comes up empty:
+#   Linux/macOS  /etc/hosts
+#   Windows      C:\Windows\System32\drivers\etc\hosts
+#
+# OBS caveat: OBS uses virtual-hosted-style addressing, so the provider calls
+# https://<bucket>.<obs-endpoint>/ — every bucket name needs its own DNS
+# record. A hosts file cannot wildcard, so on a hosts-only deployment add one
+# line per bucket, or ask for a "*.obs.<region>.<your-domain>" A record. An
+# OBS create that hangs for minutes is this, not a slow API.
 endpoints = {
-  ecs = "https://ecs.<region>.<your-domain>"
-  ims = "https://ims.<region>.<your-domain>"
-  vpc = "https://vpc.<region>.<your-domain>"
-  evs = "https://evs.<region>.<your-domain>"
-  nat = "https://nat.<region>.<your-domain>"
-  obs = "https://obs.<region>.<your-domain>"
-  iam = "https://iam-apigateway-proxy.<your-domain>"
+  ecs     = "https://ecs.<region>.<your-domain>"
+  ims     = "https://ims.<region>.<your-domain>"
+  vpc     = "https://vpc.<region>.<your-domain>"
+  evs     = "https://evs.<region>.<your-domain>"
+  nat     = "https://nat.<region>.<your-domain>"
+  obs     = "https://obs.<region>.<your-domain>"
+  iam     = "https://iam-apigateway-proxy.<your-domain>"
+  rds     = "https://rds.<region>.<your-domain>"
+  gaussdb = "https://gaussdb.<region>.<your-domain>"
+  cce     = "https://cce.<region>.<your-domain>"
 }
 
 # ── Project metadata ────────────────────────────────────────────────────────

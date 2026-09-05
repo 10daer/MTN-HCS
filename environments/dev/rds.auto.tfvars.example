@@ -14,26 +14,41 @@
 # Key = logical name, referenced as instance_key by everything below.
 #
 # availability_zone is a LIST: one AZ for single-node, two for HA (a ".ha"
-# flavor). The Lagos stack currently reports one AZ (az1.dc0), so HA needs a
-# second AZ to exist first.
+# flavor) — note this differs from gaussdb, which takes a comma-separated
+# string. The Lagos stack reports az0.dc0 and bms.az2; usable subnets live in
+# az0.dc0, so HA needs a second usable AZ to exist first.
+#
+# The AZ here MUST match the AZ of subnet_id or placement fails.
+#
+# FLAVOR: verify in HCS Console -> RDS -> Create Instance. There is no
+# hcs_rds_flavors data source, so a wrong code is only caught at apply time as
+# "DBS.280434 Invalid specification code". rds.mysql.s1.xlarge is confirmed
+# valid on lagos-mtn-1 (2026-09-05); rds.mysql.n1.large.2 is NOT.
+#
+# CAPACITY: "DBS.202309 The ECS compute resources are insufficient" means the
+# HCS host pool for that flavor/AZ is full. Not a config error — use a smaller
+# flavor, retry later, or ask the HCS admin to add capacity.
+#
+# vpc_id, subnet_id, availability_zone, db_type and db_version are ForceNew.
+# security_group_id is required (unlike gaussdb, where it is optional).
 # volume_type: ULTRAHIGH | LOCALSSD | CLOUDSSD | ESSD
 # name must be 4–64 chars.
 #
 # rds_instances = {
 #   mysql = {
 #     name              = "lagos-mtn-1-dev-mysql"
-#     flavor            = "rds.mysql.n1.large.2"
+#     flavor            = "rds.mysql.s1.xlarge"
 #     db_type           = "MySQL"
 #     db_version        = "8.0"
 #     db_password       = "ChangeMe#2026"
 #     volume_type       = "ULTRAHIGH"
 #     volume_size       = 40
-#     availability_zone = ["az1.dc0"]
+#     availability_zone = ["az0.dc0"]
 #
 #     # From `terraform output network_ids`
 #     vpc_id            = "5c1e...."
 #     subnet_id         = "9a3f...."
-#     security_group_id = "cba45dd4-5b52-4a8b-9032-aa8ec0a5bded"
+#     security_group_id = "3973...."
 #
 #     backup_start_time = "02:00-03:00"
 #     backup_keep_days  = 7
@@ -42,16 +57,16 @@
 #
 #   pg = {
 #     name              = "lagos-mtn-1-dev-pg"
-#     flavor            = "rds.pg.n1.large.2"
+#     flavor            = "rds.pg.s1.xlarge"
 #     db_type           = "PostgreSQL"
 #     db_version        = "14"
 #     db_password       = "ChangeMe#2026"
 #     volume_type       = "ULTRAHIGH"
 #     volume_size       = 40
-#     availability_zone = ["az1.dc0"]
+#     availability_zone = ["az0.dc0"]
 #     vpc_id            = "5c1e...."
 #     subnet_id         = "9a3f...."
-#     security_group_id = "cba45dd4-5b52-4a8b-9032-aa8ec0a5bded"
+#     security_group_id = "3973...."
 #   }
 # }
 

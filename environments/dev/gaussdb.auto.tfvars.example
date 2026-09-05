@@ -15,8 +15,23 @@
 # name:        4–64 chars, must start with a letter
 #
 # AZ handling: leave availability_zone unset and the module auto-selects
-# az_count AZs (default 3). The Lagos stack reports a single AZ, so set the AZ
-# explicitly and az_count = 1 — otherwise creation fails asking for 3 AZs.
+# az_count AZs (default 3). Only az0.dc0 carries usable subnets on the Lagos
+# stack, so set the AZ explicitly and az_count = 1 — otherwise creation fails
+# asking for 3 AZs. The AZ must match the AZ of subnet_id.
+#
+# Unlike rds, availability_zone here is a comma-separated STRING, not a list.
+#
+# FLAVOR: verify in HCS Console -> GaussDB -> Create Instance. A ".dn." infix
+# denotes a distributed data-node spec and pairs oddly with
+# centralization_standard — do not assume the example below is valid.
+#
+# TIME ZONE: the provider defaults to UTC+08:00 (Beijing). Set time_zone at
+# create time; changing it later may force instance replacement.
+#
+# CAPACITY: GaussDB runs on ECS hosts. If a small RDS instance fails with
+# "DBS.202309 The ECS compute resources are insufficient", a multi-vCPU
+# GaussDB flavor will not place either — check capacity before starting an
+# apply that takes 45-90 minutes.
 #
 # gaussdb_instances = {
 #   main = {
@@ -30,17 +45,19 @@
 #     # From `terraform output network_ids`
 #     vpc_id            = "5c1e...."
 #     subnet_id         = "9a3f...."
-#     security_group_id = "cba45dd4-5b52-4a8b-9032-aa8ec0a5bded"
+#     security_group_id = "3973...."
 #
-#     availability_zone = "az1.dc0"
+#     availability_zone = "az0.dc0"
 #     az_count          = 1
 #     replica_num       = 2
 #
 #     port              = "8000"
 #     backup_start_time = "02:00-03:00"
 #     backup_keep_days  = 7
+#     time_zone         = "UTC+01:00"
 #
-#     # Reference a template defined below by its key
+#     # Reference a template defined below by its key. WITHOUT this, a template
+#     # in gaussdb_parameter_templates is created but never attached.
 #     # configuration_key = "tuned"
 #   }
 # }
