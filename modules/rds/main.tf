@@ -118,6 +118,11 @@ resource "hcs_rds_mysql_account" "this" {
   name        = each.value.name
   password    = each.value.password
   hosts       = each.value.hosts
+
+  # An RDS instance processes one management job at a time. Databases and
+  # accounts reference only the instance id, so Terraform would create them
+  # concurrently and the loser returns "RDS.0005 Server error". Serialise them.
+  depends_on = [hcs_rds_mysql_database.this]
 }
 
 # ─────────────────────────────────────────────
@@ -158,6 +163,9 @@ resource "hcs_rds_pg_account" "this" {
   instance_id = local.resolved_instance_ids[each.value.instance_key]
   name        = each.value.name
   password    = each.value.password
+
+  # Same serialisation as MySQL — one management job per instance.
+  depends_on = [hcs_rds_pg_database.this]
 }
 
 # ─────────────────────────────────────────────

@@ -131,7 +131,7 @@ cce_key_pair_name = ""
 #
 # cce_node_pools = {
 #   workers = {
-#     flavor_id          = "REPLACE_WITH_VERIFIED_ECS_FLAVOR"
+#     flavor_id          = "2U-4G"
 #     initial_node_count = 1
 #     availability_zone  = "az0.dc0"
 #
