@@ -86,9 +86,9 @@ cce_key_pair_name = ""
 #     availability_zone  = "az0.dc0"
 #
 #     root_volume_size = 50
-#     root_volume_type = "SATA"
+#     root_volume_type = "SSD"
 #     data_volumes = [
-#       { size = 100, volumetype = "SATA" },
+#       { size = 100, volumetype = "SSD" },
 #     ]
 #
 #     # Autoscaling — min/max only apply when autoscaling_enabled = true
@@ -121,10 +121,25 @@ cce_key_pair_name = ""
 # test. Keeping it a separate apply means a capacity failure does not cost you
 # the cluster (5+ minutes to rebuild).
 #
-# flavor_id     — verify in HCS Console -> ECS -> Create. A standalone ECS
-#                 instance placed fine in az0.dc0, so start from that flavor.
-# root_volume_type / volumetype — SATA is confirmed available on this stack;
-#                 SSD may not be. Check the console before assuming.
+# flavor_id     — a flavor NAME (e.g. "s2.large.4"), never a UUID. CCE node
+#                 flavors are a SUBSET of ECS flavors: the flavor your plain
+#                 ECS instances use may not be offered here. Read the list from
+#                 HCS Console -> CCE -> <cluster> -> Create Node Pool, which is
+#                 authoritative for the AZ. Wrong format gives "Get flavor
+#                 ExtraSpecs error: EOF"; a valid name CCE does not support
+#                 gives "... error: flavor not found".
+#
+#                 Confirmed available on lagos-mtn-1 / az0.dc0 (2026-09-06):
+#                   s2.large.4     2 vCPU | 8 GiB    <- smallest, use for tests
+#                   s2.xlarge.2    4 vCPU | 8 GiB
+#                   s2.4xlarge.4   4 vCPU | 16 GiB
+#                   s2.2xlarge.2   8 vCPU | 16 GiB
+#                   s2.4xlarge.2  16 vCPU | 32 GiB
+#                   s2.8xlarge.2  32 vCPU | 64 GiB
+#
+# root_volume_type / volumetype — the CCE node pool page offers only
+#                 "Ultra-high I/O" here, which is SSD. SATA is not on offer for
+#                 CCE nodes even though ECS accepts it.
 # autoscaling   — off. Scaling is meaningless until one node can be placed.
 # keypair       — must ALREADY exist in HCS; this module does not import one.
 #                 Empty cce_key_pair_name falls back to ecs.auto.tfvars.
@@ -136,9 +151,9 @@ cce_key_pair_name = ""
 #     availability_zone  = "az0.dc0"
 #
 #     root_volume_size = 50
-#     root_volume_type = "SATA"
+#     root_volume_type = "SSD"
 #     data_volumes = [
-#       { size = 100, volumetype = "SATA" },
+#       { size = 100, volumetype = "SSD" },
 #     ]
 #
 #     autoscaling_enabled = false
