@@ -8,6 +8,17 @@
 # ─────────────────────────────────────────────
 # RDS Instances
 # ─────────────────────────────────────────────
+variable "instance_ready_delay" {
+  description = <<-EOT
+    How long to wait after an RDS instance is created before issuing database
+    or account jobs against it. The API reports the instance complete before it
+    accepts management jobs, and the first job then fails with HTTP 500
+    "RDS.0005 Server error". Raise this if that still occurs.
+  EOT
+  type        = string
+  default     = "90s"
+}
+
 variable "instances" {
   description = <<-EOT
     Map of RDS instances to create.

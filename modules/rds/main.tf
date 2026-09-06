@@ -97,6 +97,26 @@ resource "hcs_rds_instance" "this" {
 }
 
 # ─────────────────────────────────────────────
+# 1b. Post-create settle window
+#
+# An RDS instance reports creation complete before it will accept management
+# jobs. Creating a database immediately afterwards returns HTTP 500
+# "RDS.0005 Server error", yet the identical request succeeds on a retry
+# minutes later. Serialising database/account was not enough — the very first
+# job after creation is the one that fails — so wait before touching it.
+# ─────────────────────────────────────────────
+resource "time_sleep" "instance_ready" {
+  count = length(var.instances) > 0 ? 1 : 0
+
+  create_duration = var.instance_ready_delay
+  depends_on      = [hcs_rds_instance.this]
+
+  triggers = {
+    instance_ids = join(",", [for k, v in hcs_rds_instance.this : v.id])
+  }
+}
+
+# ─────────────────────────────────────────────
 # 2. MySQL Databases
 # ─────────────────────────────────────────────
 resource "hcs_rds_mysql_database" "this" {
@@ -106,6 +126,8 @@ resource "hcs_rds_mysql_database" "this" {
   name          = each.value.name
   character_set = each.value.character_set
   description   = each.value.description
+
+  depends_on = [time_sleep.instance_ready]
 }
 
 # ─────────────────────────────────────────────
@@ -152,6 +174,8 @@ resource "hcs_rds_pg_database" "this" {
   instance_id = local.resolved_instance_ids[each.value.instance_key]
   name        = each.value.name
   owner       = each.value.owner
+
+  depends_on = [time_sleep.instance_ready]
 }
 
 # ─────────────────────────────────────────────
